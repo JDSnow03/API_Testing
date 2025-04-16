@@ -17,7 +17,7 @@ def create_app():
     app = Flask(__name__)
     
     # Initialize CORS
-    CORS(app, resources={r"/*": {"origins": "http://localhost:8080"}})
+    CORS(app, resources={r"/*": {"origins": "https://jdsnow03.github.io"}}) # http://localhost:8080
 
     # Initialize Supabase client for authentication
     app.supabase = Config.get_supabase_client()
