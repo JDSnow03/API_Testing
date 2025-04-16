@@ -1,5 +1,5 @@
 module.exports = {
-  publicPath: '/API_Testing/'
+  publicPath: '/API_Testing/',
   // devServer: {
   //   port: 8080,
   //   open: true,
