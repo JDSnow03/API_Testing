@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:5000',
+  baseURL: 'https://api-testing-goob.onrender.com',
   responseType: 'json'
 });
 
@@ -45,7 +45,7 @@ async function refreshToken() {
   if (!currentToken) return null;
 
   try {
-    const res = await axios.post('http://127.0.0.1:5000/auth/refresh', {
+    const res = await axios.post('https://api-testing-goob.onrender.com/auth/refresh', {
       token: currentToken
     });
 
