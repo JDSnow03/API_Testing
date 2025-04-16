@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 import jwt
 import datetime
 import os
-from config import Config
+from app.config import Config
 auth_bp = Blueprint("auth", __name__)
 
 def authorize_request():

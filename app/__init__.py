@@ -1,16 +1,16 @@
 from flask import Flask
 from flask_cors import CORS
-from config import Config
-from auth import auth_bp
-from textbook import textbook_bp
-from courses import course_bp
-from questions import question_bp
-from qti_import import qti_bp
-from testbanks import testbank_bp
-from feedback import feedback_bp
-from resource_page import resources_bp
-from tests import tests_bp
-from downloads import downloads_bp
+from app.config import Config
+from app.auth import auth_bp
+from app.textbook import textbook_bp
+from app.courses import course_bp
+from app.questions import question_bp
+from app.qti_import import qti_bp
+from app.testbanks import testbank_bp
+from app.feedback import feedback_bp
+from app.resource_page import resources_bp
+from app.tests import tests_bp
+from app.downloads import downloads_bp
 
 
 def create_app():

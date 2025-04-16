@@ -1,7 +1,7 @@
 # This is where the QTI import functionality is implemented.
 from flask import Blueprint, request, jsonify
 from .auth import authorize_request
-from config import Config
+from app.config import Config
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from utilities.qti_parser import parse_qti_file_patched

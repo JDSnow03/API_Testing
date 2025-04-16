@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: flask-supabase-api
+    runtime: python
+    buildCommand: ""
+    startCommand: gunicorn run:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.10

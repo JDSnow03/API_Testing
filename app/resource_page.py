@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from .auth import authorize_request
-from config import Config
+from app.config import Config
 
 resources_bp = Blueprint('resources', __name__)
 

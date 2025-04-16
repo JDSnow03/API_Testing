@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from .auth import authorize_request
 from psycopg2 import sql
-from config import Config   
+from app.config import Config   
 import psycopg2.extras
 # Create Blueprint for feedback
 feedback_bp = Blueprint('feedback', __name__)

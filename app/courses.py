@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from .auth import authorize_request
 from psycopg2 import sql
-from config import Config
+from app.config import Config
 
 # Create Blueprint for courses
 course_bp = Blueprint('courses', __name__)

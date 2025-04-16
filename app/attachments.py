@@ -3,7 +3,7 @@ import time
 from flask import Blueprint, request, jsonify
 from .auth import authorize_request
 from psycopg2 import sql
-from config import Config   
+from app.config import Config   
 from werkzeug.utils import secure_filename
 
 attachments_bp = Blueprint("attachments", __name__)

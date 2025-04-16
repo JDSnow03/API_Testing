@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from config import Config
+from app.config import Config
 from .auth import authorize_request
 from psycopg2 import sql
 from werkzeug.utils import secure_filename

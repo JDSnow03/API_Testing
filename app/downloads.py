@@ -1,7 +1,7 @@
 import csv
 import io
 from flask import Blueprint, Response, jsonify
-from config import Config
+from app.config import Config
 from .auth import authorize_request
 
 downloads_bp = Blueprint('downloads', __name__)
