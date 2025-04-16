@@ -30,12 +30,12 @@
         <div class="t_dropdown">
           <button class="t_dropbtn">Question Type</button>
           <div class="t_dropdown-content">
-            <a href="#" @click="selectQuestionType('True/False')">True/False</a>
-            <a href="#" @click="selectQuestionType('Multiple Choice')">Multiple Choice</a>
-            <a href="#" @click="selectQuestionType('Matching')">Matching</a>
-            <a href="#" @click="selectQuestionType('Fill in the Blank')">Fill in the Blank</a>
-            <a href="#" @click="selectQuestionType('Short Answer')">Short Answer</a>
-            <a href="#" @click="selectQuestionType('Essay')">Essay</a>
+            <a  @click="selectQuestionType('True/False')">True/False</a>
+            <a  @click="selectQuestionType('Multiple Choice')">Multiple Choice</a>
+            <a  @click="selectQuestionType('Matching')">Matching</a>
+            <a  @click="selectQuestionType('Fill in the Blank')">Fill in the Blank</a>
+            <a  @click="selectQuestionType('Short Answer')">Short Answer</a>
+            <a  @click="selectQuestionType('Essay')">Essay</a>
 
           </div>
         </div>
