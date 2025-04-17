@@ -27,7 +27,7 @@
         <button class="p_button" @click="publishTestbank" :disabled="published">
           {{ published ? "Draft Pool Published" : "Publish Draft Pool" }}
         </button>
-        <button class="p_button delete" @click="deleteTestBank" :disabled="published">
+        <button class="p_button delete" v-if="!published" @click="deleteTestBank">
           Delete Draft Pool
         </button>
       </div>
@@ -109,11 +109,29 @@
             <strong>Essay Instructions:</strong> {{ question.instructions || 'None' }}
           </div>
 
+          <div v-if="question.attachment">
+            <p><strong>Attached Image:</strong></p>
+            <img :src="question.attachment" alt="Question Attachment:"
+              style="max-width: 100%; max-height: 400px; margin-bottom: 10px;" />
+          </div>
+
           <span><strong>Grading Instructions:</strong> {{ question.instructions || 'None' }}</span><br>
 
+          <div v-if="question.attachments && question.attachments.length">
+            <strong>Attachments:</strong>
+            <ul>
+              <li v-for="(att, i) in question.attachments" :key="i">
+                <a :href="att.url" target="_blank" rel="noopener">{{ att.filename }}</a>
+                <div v-if="att.filename && att.filename.match(/\.(jpg|jpeg|png|gif)$/i)">
+                  <img :src="att.url" alt="Attachment Image" style="max-width: 200px; margin-top: 10px;" />
+                </div>
+              </li>
+            </ul>
+          </div>
           <!-- Buttons shown only if selected -->
-          <div v-if="selectedQuestionId === question.id" class="p_button-group">
-            <button @click.stop="removeQuestionFromTestBank(question.id)" :disabled="published">
+          <div v-if="selectedQuestionId === question.id && !published" class="p_button-group">
+            <button @click.stop="removeQuestionFromTestBank(question.id)" :disabled="published"
+              :title="published ? 'Published — cannot remove question' : 'Remove from Draft Pool'">
               {{ published ? "Published - Cannot Remove" : "Remove from Draft Pool" }}
             </button>
           </div>
@@ -158,8 +176,9 @@ export default {
     }
   },
 
-  mounted() {
-    this.loadQuestions();
+  async mounted() {
+    await this.checkPublishedStatus();
+    await this.loadQuestions();
   },
 
   methods: {
@@ -187,10 +206,8 @@ export default {
 
         this.selectedTestBank = this.editForm.name;
         this.showEditForm = false;
-        alert('Test bank updated successfully.');
       } catch (err) {
         console.error('Error updating test bank:', err);
-        alert('Failed to update test bank.');
       }
     },
 
@@ -205,7 +222,6 @@ export default {
           });
 
           const rawQuestions = questionsRes.data.questions || [];
-          this.published = questionsRes.data.is_published || false;
 
           // ✅ Transform each question into full display shape
           this.questions = rawQuestions.map((q) => {
@@ -217,7 +233,8 @@ export default {
               section: q.section_number || 'N/A',
               points: q.default_points || 'N/A',
               time: q.est_time || 'N/A',
-              instructions: q.grading_instructions || 'None'
+              instructions: q.grading_instructions || 'None',
+              attachment: q.attachment && q.attachment.url ? q.attachment.url : ''
             };
 
             switch (q.type) {
@@ -268,15 +285,6 @@ export default {
       }
     },
     async removeQuestionFromTestBank(questionId) {
-      if (this.published) {
-        alert("This test bank is published and cannot be modified.");
-        return;
-      }
-
-      if (!this.selectedTestBankId) {
-        alert("Test bank ID is missing. Cannot remove question.");
-        return;
-      }
 
       if (!confirm('Are you sure you want to remove this question from the test bank?')) return;
 
@@ -290,11 +298,8 @@ export default {
 
         this.questions = this.questions.filter(q => q.id !== questionId);
         this.selectedQuestionId = null;
-
-        alert('Question removed from test bank.');
       } catch (err) {
         console.error('Error removing question:', err);
-        alert('Failed to remove question from test bank.');
       }
     },
     async publishTestbank() {
@@ -306,15 +311,12 @@ export default {
         });
 
         this.published = true;
-        alert("Test bank published successfully. Questions are now locked.");
       } catch (error) {
         console.error("Error publishing test bank:", error);
-        alert("Failed to publish test bank.");
       }
     },
     async deleteTestBank() {
       if (this.published) {
-        alert("Cannot delete a published test bank.");
         return;
       }
 
@@ -325,7 +327,6 @@ export default {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
 
-        alert('Draft pool deleted successfully.');
         this.$router.push({
           path: '/PubQuestions',
           query: {
@@ -335,9 +336,29 @@ export default {
         });
       } catch (err) {
         console.error('Error deleting draft pool:', err);
-        alert('Failed to delete draft pool.');
+      }
+    },
+    async checkPublishedStatus() {
+      try {
+        const res = await api.get('/testbanks/publisher', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          params: { textbook_id: this.textbookId }
+        });
+
+        const testbanks = res.data.testbanks || [];
+        const found = testbanks.find(tb => tb.testbank_id == this.selectedTestBankId);
+
+        if (found) {
+          this.published = found.is_published === true;
+        } else {
+          console.warn("Testbank not found in returned list");
+        }
+      } catch (err) {
+        console.error("Failed to fetch testbank status:", err);
       }
     }
+
+
   }
 };
 </script>

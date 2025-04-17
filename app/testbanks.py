@@ -93,7 +93,7 @@ def get_teacher_testbanks_by_course():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT testbank_id, name, course_id
+        SELECT testbank_id, name, course_id, chapter_number, section_number, is_published
         FROM Test_bank
         WHERE owner_id = %s AND course_id = %s
         ORDER BY name;
@@ -104,7 +104,10 @@ def get_teacher_testbanks_by_course():
         {
             "testbank_id": row[0],
             "name": row[1],
-            "course_id": row[2]
+            "course_id": row[2],
+            "chapter_number": row[3],
+            "section_number": row[4],
+            "is_published": row[5]
         } for row in rows
     ]
 
@@ -202,7 +205,7 @@ def get_questions_in_testbank(testbank_id):
     ###################
     cur.execute("""
     SELECT q.id, q.question_text, q.type, q.chapter_number, q.section_number,
-        q.default_points, q.est_time, q.grading_instructions
+        q.default_points, q.est_time, q.grading_instructions, q.attachment_id
         FROM test_bank_questions tbq
         JOIN questions q ON tbq.question_id = q.id
         WHERE tbq.test_bank_id = %s;
@@ -387,7 +390,7 @@ def get_publisher_testbanks_by_textbook():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT testbank_id, name, textbook_id, chapter_number, section_number
+        SELECT testbank_id, name, textbook_id, chapter_number, section_number, is_published
         FROM Test_bank
         WHERE owner_id = %s AND textbook_id = %s
         ORDER BY name;
@@ -400,7 +403,8 @@ def get_publisher_testbanks_by_textbook():
         "name": row[1],
         "textbook_id": row[2],
         "chapter_number": row[3],
-        "section_number": row[4]
+        "section_number": row[4],
+        "is_published": row[5]
         } for row in rows
     ]
 
@@ -480,7 +484,7 @@ def get_questions_in_testbank_publihser(testbank_id):
         return jsonify({"error": "You do not own this testbank"}), 403
 
     cur.execute("""
-        SELECT q.id, q.question_text, q.type, q.chapter_number, q.section_number
+        SELECT q.id, q.question_text, q.type, q.chapter_number, q.section_number, q.attachment_id
         FROM test_bank_questions tbq
         JOIN questions q ON tbq.question_id = q.id
         WHERE tbq.test_bank_id = %s;

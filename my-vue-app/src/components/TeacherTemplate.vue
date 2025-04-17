@@ -9,10 +9,14 @@
     </div>
 
     <div class="button-row">
-      <button class="t_button" @click="publishTest">Publish Final Test</button>
+      <button class="t_button" @click="publishWarning = true">Publish Final Test</button>
       <button class="t_button" @click="showBackWarning = true">Back to Draft Pool</button>
-      <button class="t_button" @click="exportToWord">Export Test to Document</button>
+      <button class="t_button" @click="exportWarning = true">Export Test to Document</button>
     </div>
+    <p class="export-note">
+      <strong>Note:</strong> Only the most recently <strong>Exported</strong> test document
+      will be published. You <strong>must</strong> export a test once to publish.<br />
+    </p>
 
     <p class="export-note">
       <strong>Note:</strong> Anything displayed in <span class="green-text">green</span> will not appear on the student
@@ -24,7 +28,7 @@
       <strong>Total Test Time:</strong> {{ totalEstimatedTime }} minutes
     </p>
     <p class="export-note">
-      <strong>Total Points:</strong> {{ this.questions.length }} points
+      <strong>Total Points:</strong> {{ totalPoints }} points
     </p>
     <hr />
 
@@ -36,13 +40,49 @@
           <p style="text-align: center; font-size: 18px;">
             If you go back to the Draft Pool, any unsaved changes on this page may be lost.
           </p>
-          <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+          <div class="popup-button-group">
             <button class="btn" @click="confirmBack">Continue</button>
             <button class="btn cancel" @click="showBackWarning = false">Cancel</button>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Publish Warning Modal -->
+    <div class="popup-overlay" v-if="publishWarning" @click.self="publishWarning = false">
+      <div class="form-popup-modal">
+        <div class="form-container">
+          <h2 style="text-align: center;">Confirm Publish</h2>
+          <p style="text-align: center; font-size: 18px;">
+            Once you publish this test, the questions on this page will no longer be editable.
+            Are you sure you want to continue?
+          </p>
+          <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+            <button class="btn" @click="confirmPublish">Yes, Publish</button>
+            <button class="btn cancel" @click="publishWarning = false">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Warning Modal -->
+    <div class="popup-overlay" v-if="exportWarning" @click.self="exportWarning = false">
+      <div class="form-popup-modal">
+        <div class="form-container">
+          <h2 style="text-align: center;">Confirm Export</h2>
+          <p style="text-align: center; font-size: 18px;">
+            Exporting will generate a Word document based on the current test setup.
+            Any unsaved changes will not be included. Continue?
+          </p>
+          <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+            <button class="btn" @click="confirmExport">Yes, Export</button>
+            <button class="btn cancel" @click="exportWarning = false">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
 
     <div class="question-list-container">
       <draggable v-model="questions" item-key="id" class="drag-list" handle=".drag-handle" @update="saveOrder">
@@ -54,6 +94,13 @@
               <span class="drag-handle" title="Drag to reorder">✥</span>
               <h3>{{ index + 1 }}. {{ element.question_text }}</h3>
             </div>
+
+            <!-- Image Preview if available -->
+            <div v-if="element.attachment && element.attachment.url" class="question-image-preview">
+              <img :src="element.attachment.url" alt="Question Image"
+                style="max-width: 100%; max-height: 300px; margin-top: 10px; margin-bottom: 10px;" />
+            </div>
+
 
             <!-- Multiple Choice Question boxes-->
             <div v-if="element.type === 'Multiple Choice'">
@@ -166,7 +213,9 @@ export default {
       },
       testBankId: this.$route.query.testBankId,
       showBackWarning: false,
-      hasUnsavedChanges: true
+      hasUnsavedChanges: true,
+      publishWarning: false,
+      exportWarning: false
     };
   },
 
@@ -194,16 +243,169 @@ export default {
         const time = parseInt(q.est_time, 10);
         return sum + (isNaN(time) ? 0 : time);
       }, 0);
+    },
+    totalPoints() {
+      return this.questions.reduce((sum, q) => {
+        const pts = parseFloat(q.default_points);
+        return sum + (isNaN(pts) ? 0 : pts);
+      }, 0);
     }
   },
 
   methods: {
+    //methods for exporting, publishing, and going back to the draft pool
+    // finalize the document export
+    blobToFile(blob, filename) {
+      return new File([blob], filename, {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      });
+    },
+
+    //finalize test key before export
+    async uploadAnswerKey(testId, keyFile) {
+      const formData = new FormData();
+      formData.append('file', keyFile);
+
+      try {
+        const response = await api.post(`/tests/${testId}/upload_answer_key`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        console.log("✅ Answer key uploaded:", response.data);
+      } catch (err) {
+        console.error("❌ Failed to upload answer key:", err);
+        alert("The answer key could not be saved to the backend.");
+      }
+    },
+
+    //publish the test
+    async publishTest() {
+      try {
+        const testId = localStorage.getItem('finalizedTestId');
+
+        if (!testId) {
+          alert("❌ No finalized test found. Please export the test first.");
+          return;
+        }
+
+        // Step 1: Publish the finalized test
+        await api.post(`/tests/${testId}/publish`, {}, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        alert("✅ Test successfully published!");
+        localStorage.removeItem('finalizedTestId');
+
+      } catch (err) {
+        console.error("❌ Failed to publish test:", (err.response && err.response.data) || err.message);
+        alert("An error occurred while publishing. Check the console.");
+      }
+    },
+
+
+    async finalizeTestBeforeExport() {
+      try {
+        const selectedTemplate = this.testOptions.selectedTemplate || "All Questions";
+
+        const finalizePayload = {
+          test_bank_id: parseInt(this.testBankId),
+          name: this.testOptions.testName,
+          estimated_time: this.totalEstimatedTime > 0 ? this.totalEstimatedTime : 1,
+          test_instructions: "",
+          course_id: parseInt(this.$route.query.courseId),
+          type: selectedTemplate
+        };
+
+        // 🔑 If it's not "All Questions", provide question_ids
+        if (selectedTemplate !== "All Questions") {
+          finalizePayload.question_ids = this.questions.map(q => q.id);
+        }
+
+        console.log("🟡 Finalizing test with payload:", finalizePayload);
+
+        const response = await api.post('/tests/finalize', finalizePayload, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        if (response.status === 201) {
+          const testId = response.data.test_id;
+
+          //this needs to be debugged
+          // // Upload graphic if present
+          // if (this.testOptions.graphicPreview) {
+          //   const imageFile = this.dataUrlToFile(this.testOptions.graphicPreview, "resource_image.png");
+          //   const formData = new FormData();
+          //   formData.append('file', imageFile);
+
+          //   await api.post(`/tests/${testId}/upload_attachment`, formData, {
+          //     headers: {
+          //       'Content-Type': 'multipart/form-data',
+          //       Authorization: `Bearer ${localStorage.getItem('token')}`
+          //     }
+          //   });
+          // }
+
+          return {
+            testId,
+            questionCount: response.data.question_count
+          };
+        } else {
+          throw new Error("Finalize test failed with non-201 response");
+        }
+
+      } catch (err) {
+        console.error("❌ Finalize error:", (err.response && err.response.data) || err.message);
+        alert("Failed to finalize test. See console for details.");
+        throw err;
+      }
+    },
+
+    // Convert data URL to File object
+    dataUrlToFile(dataUrl, filename) {
+      const arr = dataUrl.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new File([u8arr], filename, { type: mime });
+    },
+
+
+    async confirmExport() {
+      this.exportWarning = false;
+      try {
+        const finalizedMeta = await this.finalizeTestBeforeExport();
+        const testId = finalizedMeta.testId;
+
+        // ✅ Save to localStorage or Vue data
+        localStorage.setItem('finalizedTestId', testId); // OR use: this.finalizedTestId = testId;
+
+        await this.exportToWord(finalizedMeta);
+      } catch (err) {
+        console.error("Export canceled due to finalize error");
+      }
+    },
+    confirmPublish() {
+      this.publishWarning = false;
+      this.publishTest(); // call your existing publish logic
+    },
+
     confirmExit(e) {
-    if (this.hasUnsavedChanges) {
-      e.preventDefault();
-      e.returnValue = ''; // For modern browsers to trigger prompt
-    }
-  },
+      if (this.hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = ''; // For modern browsers to trigger prompt
+      }
+    },
 
     confirmBack() {
       this.showBackWarning = false;
@@ -213,15 +415,19 @@ export default {
     //function to go back to draft pool
     goBackTB() {
       this.$router.push({
-        name: 'TeacherViewTB',
-        params: { id: this.testBankId },
+        path: '/TeacherViewTB',
         query: {
           courseId: this.$route.query.courseId,
           courseTitle: this.$route.query.courseTitle,
+          testBankId: this.testBankId,
           testBankName: this.$route.query.testBankName
         }
       });
+
     },
+
+
+    //methods for page contents==========================================
     //fetch desired testbank questions
     async fetchQuestions() {
       try {
@@ -334,7 +540,20 @@ export default {
     },
 
     //export the questions to a document
-    async exportToWord() {
+    async exportToWord(finalizedMeta) {
+      const totalPoints = this.questions.reduce((sum, q) => {
+        const pts = parseFloat(q.default_points);
+        return sum + (isNaN(pts) ? 0 : pts);
+      }, 0);
+
+      const totalTime = this.questions.reduce((sum, q) => {
+        const time = parseInt(q.est_time, 10);
+        return sum + (isNaN(time) ? 0 : time);
+      }, 0);
+
+      const confirmedPoints = finalizedMeta && finalizedMeta.questionCount ? finalizedMeta.questionCount : totalPoints;
+      const confirmedTime = this.totalEstimatedTime || totalTime;
+
       const {
         Document,
         Packer,
@@ -386,8 +605,8 @@ export default {
             spacing: { after: 100 },
           }),
           ...[
-            `This exam is worth ${this.questions.length} points.`,
-            `You have ${this.totalEstimatedTime || "N/A"} minutes to complete the exam.`,
+            `This exam is worth ${confirmedPoints} points.`,
+            `You have ${confirmedTime || "N/A"} minutes to complete the exam.`,
             "Read each question carefully.",
             "Be sure to answer all questions, do not leave anything blank.",
             "Turn in all work and scratch paper with your exam.",
@@ -406,7 +625,7 @@ export default {
       };
 
       // ------Test Page-----
-      const testContent = () => {
+      const testContent = async () => {
         const content = [
           new Paragraph({
             text: `${this.testOptions.testName} - Version: XXXX`,
@@ -417,7 +636,36 @@ export default {
           createHorizontalLine()
         ];
 
-        this.questions.forEach((q, index) => {
+        for (let index = 0; index < this.questions.length; index++) {
+          const q = this.questions[index];
+          // ✅ Fetch and insert question attachment image
+          if (q.attachment && q.attachment.url) {
+            try {
+              const imageResponse = await fetch(q.attachment.url);
+              const imageBuffer = await imageResponse.arrayBuffer();
+              const imageBytes = new Uint8Array(imageBuffer);
+
+              content.push(
+                new Paragraph({
+                  children: [
+                    new ImageRun({
+                      data: imageBytes,
+                      transformation: {
+                        width: 500,
+                        height: 300
+                      }
+                    })
+                  ],
+                  spacing: { after: 100 }
+                })
+              );
+            } catch (err) {
+              console.warn(`⚠ Failed to fetch image for question ${index + 1}:`, err);
+            }
+          };
+
+
+          //question text
           content.push(
             new Paragraph({
               text: `${index + 1}. ${q.question_text}`,
@@ -498,7 +746,7 @@ export default {
 
 
           content.push(new Paragraph({ text: " ", spacing: { after: 300 } }));
-        });
+        };
 
         return content;
       };
@@ -614,7 +862,7 @@ export default {
           properties: {},
           children: [
             ...coverPageContent(),
-            ...testContent(),
+            ...(await testContent()),
             ...resourceSection
           ]
         }],
@@ -651,6 +899,35 @@ export default {
         Packer.toBlob(testDoc),
         Packer.toBlob(keyDoc)
       ]);
+
+
+      const testFile = this.blobToFile(testBlob, `${this.testOptions.testName || "GeneratedTest"}.docx`);
+      const keyFile = this.blobToFile(keyBlob, `${this.testOptions.testName || "TestKey"}.key.docx`);
+
+      const testId = finalizedMeta.testId;
+
+      try {
+        // Upload the test file as PDF equivalent
+        const testForm = new FormData();
+        testForm.append('file', testFile);
+
+        await api.post(`/tests/${testId}/upload_pdf`, testForm, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        // Upload the answer key to its dedicated endpoint
+        await this.uploadAnswerKey(testId, keyFile);
+
+      } catch (err) {
+        console.error("❌ Upload failed:", err);
+        alert("Failed to upload test or answer key.");
+      }
+
+
+
 
       saveAs(testBlob, `${this.testOptions.testName || "GeneratedTest"}.docx`);
       saveAs(keyBlob, `${this.testOptions.testName || "TestKey"}.key.docx`);
