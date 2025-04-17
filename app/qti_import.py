@@ -205,8 +205,8 @@ def save_qti_questions(import_id):
                 manifest_path = os.path.join(root, "imsmanifest.xml")
                 break
 
-            if not manifest_path:
-                return jsonify({"error": "imsmanifest.xml not found in extracted content!"}), 400
+        if not manifest_path:
+            return jsonify({"error": "imsmanifest.xml not found in extracted content!"}), 400
 
 
         # Parse file
