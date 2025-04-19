@@ -5,7 +5,7 @@ from app.config import Config
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from utilities.qti_parser import parse_qti_file_patched
-from utilities.file_handler import extract_qti_zip_from_supabase, extract_qti_zip_from_supabase_2 ##############
+from utilities.file_handler import extract_qti_zip_from_supabase
 from io import BytesIO
 import os
 import shutil
@@ -242,7 +242,7 @@ def save_qti_questions(import_id):
         # Local extraction path (will contain the folder after unzipping)
         ########################
         # BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        unzipped_folder_path = extract_qti_zip_from_supabase_2(original_supabase_path, import_id)
+        unzipped_folder_path = extract_qti_zip_from_supabase(original_supabase_path, import_id)
 
         
         # Re-extract if missing
