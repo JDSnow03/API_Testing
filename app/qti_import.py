@@ -248,12 +248,28 @@ def save_qti_questions(import_id):
         # Re-extract if missing
         # ✅ Skip __MACOSX and find the correct main folder
         try:
-            inner_dir = next(
-                d.path for d in os.scandir(unzipped_folder_path)
-                if d.is_dir() and "__MACOSX" not in d.name
-            )
+            # inner_dir = next(
+            #     d.path for d in os.scandir(unzipped_folder_path)
+            #     if d.is_dir() and "__MACOSX" not in d.name
+            # )
+            # If there's no subdirectory, use the extracted path directly
+            try:
+                inner_dir = next(
+                    d.path for d in os.scandir(unzipped_folder_path)
+                    if d.is_dir() and "__MACOSX" not in d.name
+                )
+            except StopIteration:
+                inner_dir = unzipped_folder_path  # fallback if no folder inside
         except StopIteration:
             return jsonify({"error": "No valid folder found inside extracted zip!"}), 500
+
+
+        ###############
+        print(f"📁 Extracted contents of: {unzipped_folder_path}")
+        for root, dirs, files in os.walk(unzipped_folder_path):
+            for file in files:
+                print(f"📄 {os.path.join(root, file)}")
+        ###############
 
         # ✅ Recursively find imsmanifest.xml regardless of depth
         manifest_path = None
