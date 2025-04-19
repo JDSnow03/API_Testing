@@ -6,6 +6,7 @@ const api = axios.create({
   responseType: 'json'
 });
 
+
 // Attach the token to every outgoing request
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
