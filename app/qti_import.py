@@ -273,7 +273,7 @@ def save_qti_questions(import_id):
 
         # ✅ Recursively find imsmanifest.xml regardless of depth
         manifest_path = None
-        for root, dirs, files in os.walk(inner_dir):
+        for root, dirs, files in os.walk(unzipped_folder_path):
             if "imsmanifest.xml" in files:
                 manifest_path = os.path.join(root, "imsmanifest.xml")
                 break
