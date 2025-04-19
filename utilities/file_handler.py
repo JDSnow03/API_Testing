@@ -29,6 +29,12 @@ def extract_qti_zip_from_supabase(supabase_path: str, import_id: int) -> str:
 def extract_qti_zip_from_supabase_2(supabase_file_path, import_id):
     supabase = Config.get_supabase_client()
 
+    # ✅ Strip bucket prefix if present
+    if supabase_file_path.startswith(f"{Config.QTI_BUCKET}/"):
+        supabase_file_path = supabase_file_path[len(f"{Config.QTI_BUCKET}/"):]
+
+
+
     print(f"📦 Downloading from bucket: {Config.QTI_BUCKET} — key: {supabase_file_path}")
 
     # Generate a tmp extraction dir
@@ -38,7 +44,6 @@ def extract_qti_zip_from_supabase_2(supabase_file_path, import_id):
     # Get zip file from Supabase
     res = supabase.storage.from_(Config.QTI_BUCKET).download(supabase_file_path)
     if res is None or not hasattr(res, 'read'):
-        print("res = ", res)
         raise Exception("Failed to download ZIP from Supabase")
 
     zip_bytes = res.read()
