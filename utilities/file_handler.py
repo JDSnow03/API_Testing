@@ -29,6 +29,8 @@ def extract_qti_zip_from_supabase(supabase_path: str, import_id: int) -> str:
 def extract_qti_zip_from_supabase_2(supabase_file_path, import_id):
     supabase = Config.get_supabase_client()
 
+    print(f"📦 Downloading from bucket: {Config.QTI_BUCKET} — key: {supabase_file_path}")
+
     # Generate a tmp extraction dir
     extract_dir = f"/tmp/qti_extract_{import_id}"
     os.makedirs(extract_dir, exist_ok=True)

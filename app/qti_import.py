@@ -130,6 +130,10 @@ def create_qti_import():
     data = request.get_json()
     file_path = data.get('file_path')
 
+    #######
+    print(f"📝 Saving file_path to DB: {file_path}")
+    #######
+
     if not file_path:
         return jsonify({'error': 'Missing file_path'}), 400
 
