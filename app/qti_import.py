@@ -240,8 +240,7 @@ def save_qti_questions(import_id):
         original_supabase_path = result[0].strip()
 
         # Local extraction path (will contain the folder after unzipping)
-        ########################
-        # BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         unzipped_folder_path = extract_qti_zip_from_supabase(original_supabase_path, import_id)
 
         
@@ -254,11 +253,6 @@ def save_qti_questions(import_id):
             )
         except StopIteration:
             return jsonify({"error": "No valid folder found inside extracted zip!"}), 500
-
-
-        ##########
-        print(f"📁 Searching for imsmanifest.xml inside {unzipped_folder_path}")
-        ##########
 
         # ✅ Recursively find imsmanifest.xml regardless of depth
         manifest_path = None
