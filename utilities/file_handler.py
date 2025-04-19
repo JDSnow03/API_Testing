@@ -25,3 +25,30 @@ def extract_qti_zip_from_supabase(supabase_path: str, import_id: int) -> str:
         zip_ref.extractall(base_extract_path)
 
     return base_extract_path
+
+def extract_qti_zip_from_supabase_2(supabase_path: str, import_id: int) -> str:
+    supabase = Config.get_supabase_client()
+
+    # Remove bucket prefix if present
+    if supabase_path.startswith(f"{Config.QTI_BUCKET}/"):
+        supabase_path = supabase_path[len(f"{Config.QTI_BUCKET}/"):]
+
+    user_id = supabase_path.split("/")[0]
+
+    # 🛠️ Fix: Get the actual response content
+    response = supabase.storage.from_(Config.QTI_BUCKET).download(supabase_path)
+
+    if not hasattr(response, 'read') and hasattr(response, 'content'):
+        zip_bytes = BytesIO(response.content)
+    elif hasattr(response, 'read'):
+        zip_bytes = BytesIO(response.read())
+    else:
+        raise Exception("Failed to download ZIP from Supabase")
+
+    base_extract_path = os.path.join("qti-uploads", user_id, f"import_{import_id}")
+    os.makedirs(base_extract_path, exist_ok=True)
+
+    with zipfile.ZipFile(zip_bytes, 'r') as zip_ref:
+        zip_ref.extractall(base_extract_path)
+
+    return base_extract_path
