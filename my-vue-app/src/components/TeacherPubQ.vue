@@ -158,14 +158,14 @@
                   </li>
                 </ul>
               </div>
-              <div v-if="q.attachment || (q.attachments && q.attachments.length)">
-              <strong>Attachments:</strong>
-              <ul>
-                <li v-if="q.attachment">
-                  <img :src="q.attachment.url" :alt="q.attachment.name" style="max-width: 100%; margin-top: 10px;" />
-                </li>
-              </ul>
-            </div>
+              <div v-if="q.attachments && q.attachments.length">
+                <strong>Attachments:</strong>
+                <ul>
+                  <li v-for="(att, i) in q.attachments" :key="i">
+                    <img :src="att.url" :alt="att.name || 'attachment'" style="max-width: 100%; margin-top: 10px;" />
+                  </li>
+                </ul>
+              </div>
 
 
               <div v-if="selectedQuestionId === q.id" class="button-group">
@@ -328,95 +328,97 @@ export default {
               if (q.attachment && !q.attachments) {
                 q.attachments = [q.attachment];
               }
-          }
+              console.log("Attachment for question", q.id, ":", q.attachment);
+
+            }
 
             this.fullTestbanks.push({
-            testbank_id: test.test_id,
-            name: test.name || `Test ${test.test_id}`,
-            chapter_number: 'N/A',
-            section_number: 'N/A',
-            questions
-          });
-        } catch (err) {
-          console.error(`❌ Failed to fetch questions for test ID ${test.test_id}`, err);
-          // Skips to the next test
+              testbank_id: test.test_id,
+              name: test.name || `Test ${test.test_id}`,
+              chapter_number: 'N/A',
+              section_number: 'N/A',
+              questions
+            });
+          } catch (err) {
+            console.error(`❌ Failed to fetch questions for test ID ${test.test_id}`, err);
+            // Skips to the next test
+          }
         }
-      }
 
         console.log("✅ Published test questions loaded:", this.fullTestbanks);
-    } catch(err) {
-      console.error("🚨 Failed to load published tests:", err);
+      } catch (err) {
+        console.error("🚨 Failed to load published tests:", err);
+      }
     }
-  }
 
-  ,
-  async fetchTeacherTestbanks() {
-    try {
-      const res = await api.get(`/testbanks/teacher?course_id=${this.courseId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      this.testBanks = res.data.testbanks || [];
-    } catch (err) {
-      console.error("Failed to load teacher testbanks:", err);
-    }
-  },
-  toggleQuestionSelection(questionId) {
-    this.selectedQuestionId = this.selectedQuestionId === questionId ? null : questionId;
-  },
-  openFeedbackForm(id) {
-    this.selectedQuestionIdForFeedback = id;
-    this.feedbackText = '';
-    this.showFeedbackForm = true;
-  },
-  closeFeedbackForm() {
-    this.selectedQuestionIdForFeedback = null;
-    this.feedbackText = '';
-    this.showFeedbackForm = false;
-  },
-  async submitFeedback() {
-    try {
-      await api.post('/feedback/create', {
-        question_id: this.selectedQuestionIdForFeedback,
-        comment_field: this.feedbackText
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      this.closeFeedbackForm();
-    } catch (err) {
-      console.error("Error submitting feedback:", err);
-    }
-  },
-  openTestBankModal(id) {
-    this.selectedQuestionToAdd = id;
-    this.showTestBankModal = true;
-  },
-  closeTestBankModal() {
-    this.selectedQuestionToAdd = null;
-    this.showTestBankModal = false;
-  },
-  async assignToDraftPool(testbankId) {
-    try {
-      await api.post(`/testbanks/${testbankId}/questions`, {
-        question_ids: [this.selectedQuestionToAdd]
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      this.closeTestBankModal();
-    } catch (err) {
-      console.error("Failed to assign to draft pool:", err);
-    }
-  },
-  async loadFeedbackForQuestion(q) {
-    try {
-      const res = await api.get(`/feedback/question/${q.id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      q.feedback = res.data || [];
-    } catch (err) {
-      console.error(`Failed to load feedback for question ${q.id}`, err);
+    ,
+    async fetchTeacherTestbanks() {
+      try {
+        const res = await api.get(`/testbanks/teacher?course_id=${this.courseId}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        this.testBanks = res.data.testbanks || [];
+      } catch (err) {
+        console.error("Failed to load teacher testbanks:", err);
+      }
+    },
+    toggleQuestionSelection(questionId) {
+      this.selectedQuestionId = this.selectedQuestionId === questionId ? null : questionId;
+    },
+    openFeedbackForm(id) {
+      this.selectedQuestionIdForFeedback = id;
+      this.feedbackText = '';
+      this.showFeedbackForm = true;
+    },
+    closeFeedbackForm() {
+      this.selectedQuestionIdForFeedback = null;
+      this.feedbackText = '';
+      this.showFeedbackForm = false;
+    },
+    async submitFeedback() {
+      try {
+        await api.post('/feedback/create', {
+          question_id: this.selectedQuestionIdForFeedback,
+          comment_field: this.feedbackText
+        }, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        this.closeFeedbackForm();
+      } catch (err) {
+        console.error("Error submitting feedback:", err);
+      }
+    },
+    openTestBankModal(id) {
+      this.selectedQuestionToAdd = id;
+      this.showTestBankModal = true;
+    },
+    closeTestBankModal() {
+      this.selectedQuestionToAdd = null;
+      this.showTestBankModal = false;
+    },
+    async assignToDraftPool(testbankId) {
+      try {
+        await api.post(`/testbanks/${testbankId}/questions`, {
+          question_ids: [this.selectedQuestionToAdd]
+        }, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        this.closeTestBankModal();
+      } catch (err) {
+        console.error("Failed to assign to draft pool:", err);
+      }
+    },
+    async loadFeedbackForQuestion(q) {
+      try {
+        const res = await api.get(`/feedback/question/${q.id}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        q.feedback = res.data || [];
+      } catch (err) {
+        console.error(`Failed to load feedback for question ${q.id}`, err);
+      }
     }
   }
-}
 };
 </script>
 
