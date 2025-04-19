@@ -421,6 +421,8 @@ def save_qti_questions(import_id):
         }), 201
 
     except Exception as e:
+        traceback.print_exc()
+
         conn.rollback()
         return jsonify({"error": str(e)}), 500
 

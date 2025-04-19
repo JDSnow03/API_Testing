@@ -43,6 +43,8 @@ def extract_qti_zip_from_supabase_2(supabase_path: str, import_id: int) -> str:
     elif hasattr(response, 'read'):
         zip_bytes = BytesIO(response.read())
     else:
+        import traceback
+        traceback.print_exc()
         raise Exception("Failed to download ZIP from Supabase")
 
     base_extract_path = os.path.join("qti-uploads", user_id, f"import_{import_id}")
