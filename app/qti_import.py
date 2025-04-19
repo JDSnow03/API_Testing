@@ -18,58 +18,6 @@ qti_bp = Blueprint('qti', __name__)
 # PHASE 1.A - Upload QTI file to Supabase Storage
 
 #########
-@qti_bp.route('/upload', methods=['POST'])
-def upload_qti_file():
-    auth_data = authorize_request()
-    if isinstance(auth_data, tuple):
-        return jsonify(auth_data[0]), auth_data[1]
-
-    user_id = auth_data.get("user_id")
-
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file provided'}), 400
-
-    file = request.files['file']
-    filename = secure_filename(file.filename)
-
-    try:
-        # ✅ Save to /tmp for debugging
-        temp_path = f"/tmp/{filename}"
-        file.save(temp_path)
-        print(f"✅ File saved to /tmp: {temp_path}")
-
-        # ✅ Validate ZIP and check imsmanifest.xml
-        with zipfile.ZipFile(temp_path, 'r') as zip_ref:
-            if not any(os.path.basename(name) == "imsmanifest.xml" for name in zip_ref.namelist()):
-                return jsonify({'error': 'Invalid QTI zip: imsmanifest.xml not found.'}), 400
-
-        # ✅ Read bytes again for Supabase
-        with open(temp_path, "rb") as f:
-            file_bytes = f.read()
-
-        # ✅ Upload to Supabase
-        timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-        file_path = f"{user_id}/import{timestamp}_{filename}"
-
-        supabase = Config.get_supabase_client()
-        supabase.storage.from_(Config.QTI_BUCKET).upload(
-            path=file_path,
-            file=file_bytes,
-            file_options={"content-type": "application/zip"}
-        )
-
-        print("✅ Uploaded to Supabase:", file_path)
-
-        return jsonify({
-            'message': 'File uploaded successfully',
-            'file_path': f"{Config.QTI_BUCKET}/{file_path}"
-        }), 201
-
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
-#########
-
 # @qti_bp.route('/upload', methods=['POST'])
 # def upload_qti_file():
 #     auth_data = authorize_request()
@@ -83,30 +31,34 @@ def upload_qti_file():
 
 #     file = request.files['file']
 #     filename = secure_filename(file.filename)
-#     file_bytes = BytesIO(file.read())
-#     # Validate that it's a zip and contains imsmanifest.xml
+
 #     try:
-#         with zipfile.ZipFile(file_bytes, 'r') as zip_ref:
+#         # ✅ Save to /tmp for debugging
+#         temp_path = f"/tmp/{filename}"
+#         file.save(temp_path)
+#         print(f"✅ File saved to /tmp: {temp_path}")
+
+#         # ✅ Validate ZIP and check imsmanifest.xml
+#         with zipfile.ZipFile(temp_path, 'r') as zip_ref:
 #             if not any(os.path.basename(name) == "imsmanifest.xml" for name in zip_ref.namelist()):
 #                 return jsonify({'error': 'Invalid QTI zip: imsmanifest.xml not found.'}), 400
-#     except zipfile.BadZipFile:
-#         return jsonify({'error': 'Uploaded file is not a valid zip archive.'}), 400
 
-# # Reset pointer after reading for validation
-#     file_bytes.seek(0)
-#     # Create a unique file path using user ID and timestamp
-#     timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-#     file_path = f"{user_id}/import_{timestamp}_{filename}"
+#         # ✅ Read bytes again for Supabase
+#         with open(temp_path, "rb") as f:
+#             file_bytes = f.read()
 
-#     try:
+#         # ✅ Upload to Supabase
+#         timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+#         file_path = f"{user_id}/import{timestamp}_{filename}"
+
 #         supabase = Config.get_supabase_client()
-
-#         # Upload to Supabase Storage
 #         supabase.storage.from_(Config.QTI_BUCKET).upload(
 #             path=file_path,
-#             file=file_bytes.read(),
+#             file=file_bytes,
 #             file_options={"content-type": "application/zip"}
 #         )
+
+#         print("✅ Uploaded to Supabase:", file_path)
 
 #         return jsonify({
 #             'message': 'File uploaded successfully',
@@ -114,7 +66,55 @@ def upload_qti_file():
 #         }), 201
 
 #     except Exception as e:
+#         traceback.print_exc()
 #         return jsonify({'error': str(e)}), 500
+#########
+
+@qti_bp.route('/upload', methods=['POST'])
+def upload_qti_file():
+    auth_data = authorize_request()
+    if isinstance(auth_data, tuple):
+        return jsonify(auth_data[0]), auth_data[1]
+
+    user_id = auth_data.get("user_id")
+
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+    filename = secure_filename(file.filename)
+    file_bytes = BytesIO(file.read())
+    # Validate that it's a zip and contains imsmanifest.xml
+    try:
+        with zipfile.ZipFile(file_bytes, 'r') as zip_ref:
+            if not any(os.path.basename(name) == "imsmanifest.xml" for name in zip_ref.namelist()):
+                return jsonify({'error': 'Invalid QTI zip: imsmanifest.xml not found.'}), 400
+    except zipfile.BadZipFile:
+        return jsonify({'error': 'Uploaded file is not a valid zip archive.'}), 400
+
+# Reset pointer after reading for validation
+    file_bytes.seek(0)
+    # Create a unique file path using user ID and timestamp
+    timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    file_path = f"{user_id}/import_{timestamp}_{filename}"
+
+    try:
+        supabase = Config.get_supabase_client()
+
+        # Upload to Supabase Storage
+        supabase.storage.from_(Config.QTI_BUCKET).upload(
+            path=file_path,
+            file=file_bytes.read(),
+            file_options={"content-type": "application/zip"}
+        )
+
+        return jsonify({
+            'message': 'File uploaded successfully',
+            'file_path': f"{Config.QTI_BUCKET}/{file_path}"
+        }), 201
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 # PHASE 1.B - Create QTI_Imports record (no test_id)
