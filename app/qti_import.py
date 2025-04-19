@@ -51,7 +51,7 @@ def upload_qti_file():
         timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
         file_path = f"{user_id}/import{timestamp}_{filename}"
 
-        supabase = Config.get_supabaseclient()
+        supabase = Config.get_supabase_client()
         supabase.storage.from_(Config.QTI_BUCKET).upload(
             path=file_path,
             file=file_bytes,
