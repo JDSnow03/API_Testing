@@ -38,7 +38,6 @@ def extract_qti_zip_from_supabase_2(supabase_file_path, import_id):
     # Get zip file from Supabase
     res = supabase.storage.from_(Config.QTI_BUCKET).download(supabase_file_path)
     if res is None or not hasattr(res, 'read'):
-        print("res = ", res)
         raise Exception("Failed to download ZIP from Supabase")
 
     zip_bytes = res.read()
