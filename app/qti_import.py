@@ -263,6 +263,7 @@ def save_qti_questions(import_id):
                 break
 
         if not manifest_path:
+            traceback.print_exc()
             return jsonify({"error": "imsmanifest.xml not found in extracted content!"}), 400
 
 
