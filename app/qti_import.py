@@ -62,8 +62,7 @@ def upload_qti_file():
 
         return jsonify({
             'message': 'File uploaded successfully',
-            ###########'file_path': f"{Config.QTI_BUCKET}/{file_path}"
-            'file_path': file_path,  # ✅ Use the path directly
+            'file_path': f"{Config.QTI_BUCKET}/{file_path}"
         }), 201
 
     except Exception as e:
