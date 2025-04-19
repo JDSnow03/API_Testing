@@ -426,6 +426,12 @@ def save_qti_questions(import_id):
         }), 201
 
     except Exception as e:
+        ##############
+        traceback.print_exc()  # ✅ Shows detailed stack trace in Render logs
+
+        print("❌ ERROR in /qti/save route")
+        print(f"❌ Exception: {e}")
+        ##############
         conn.rollback()
         return jsonify({"error": str(e)}), 500
 
