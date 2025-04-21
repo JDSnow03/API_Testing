@@ -14,13 +14,12 @@
         <!-- Edit Test Bank Info Button -->
         <button class="p_button" @click="showEditForm = true">Edit Draft Pool Info</button>
 
-        <router-link
-          :to="{ path: '/PubQuestions', query: { title: this.textbookTitle, textbook_id: this.textbookId } }">
+        <router-link :to="{ path: '/PubQuestions', query: { title: textbookTitle, textbook_id: textbookId } }">
           <button class="p_button">Return to Question Page</button>
         </router-link>
 
         <router-link
-          :to="{ name: 'PubViewFeedback', query: { testbank_id: selectedTestBankId, title: selectedTestBank } }">
+          :to="{ name: 'PubViewFeedback', query: { testbank_id: selectedTestBankId, title: selectedTestBank, textbook_id: textbookId } }">
           <button class="p_button">View Feedback</button>
         </router-link>
 
@@ -87,9 +86,9 @@
             </ul>
           </div>
 
-          <div v-if="question.type === 'Short Answer'">
+          <!-- <div v-if="question.type === 'Short Answer'">
             <strong>Answer:</strong> {{ question.answer || 'Not provided' }}
-          </div>
+          </div> -->
 
           <div v-if="question.type === 'Fill in the Blank'">
             <strong>Correct Answer(s):</strong>
@@ -105,29 +104,25 @@
             </ul>
           </div>
 
-          <div v-if="question.type === 'Essay'">
+          <!-- <div v-if="question.type === 'Essay'">
             <strong>Essay Instructions:</strong> {{ question.instructions || 'None' }}
-          </div>
+          </div> -->
 
-          <div v-if="question.attachment">
+          <!-- <div v-if="question.attachment">
             <p><strong>Attached Image:</strong></p>
             <img :src="question.attachment" alt="Question Attachment:"
               style="max-width: 100%; max-height: 400px; margin-bottom: 10px;" />
-          </div>
+          </div> -->
 
           <span><strong>Grading Instructions:</strong> {{ question.instructions || 'None' }}</span><br>
 
-          <div v-if="question.attachments && question.attachments.length">
-            <strong>Attachments:</strong>
-            <ul>
-              <li v-for="(att, i) in question.attachments" :key="i">
-                <a :href="att.url" target="_blank" rel="noopener">{{ att.filename }}</a>
-                <div v-if="att.filename && att.filename.match(/\.(jpg|jpeg|png|gif)$/i)">
-                  <img :src="att.url" alt="Attachment Image" style="max-width: 200px; margin-top: 10px;" />
-                </div>
-              </li>
-            </ul>
+          <div v-if="question.attachment && question.attachment.url">
+            <strong>Attachment:</strong><br />
+            <div v-if="question.attachment.name.match(/\.(jpg|jpeg|png|gif)$/i)">
+              <img :src="question.attachment.url" alt="Attachment" style="max-width: 250px; margin-top: 10px;" />
+            </div>
           </div>
+
           <!-- Buttons shown only if selected -->
           <div v-if="selectedQuestionId === question.id && !published" class="p_button-group">
             <button @click.stop="removeQuestionFromTestBank(question.id)" :disabled="published"
@@ -155,10 +150,12 @@ export default {
     return {
       showPopup: false,
       showEditForm: false,
-      selectedTestBank: this.$route.query.name || 'No Test Bank Selected',
+      textbookTitle: this.$route.query.title || 'Book Title',
+      textbookId: this.$route.query.textbook_id || '',
+      selectedTestBank: this.$route.query.name || 'No Draft Pool Selected',
       selectedTestBankId: this.$route.query.testbank_id || this.$route.params.testbank_id || null,
-      textbookId: this.$route.query.textbook_id || null,
-      textbookTitle: this.$route.query.title || null,
+      //textbookId: this.$route.query.textbook_id || null,
+      //textbookTitle: this.$route.query.title || null,
       selectedQuestionId: null,
       published: false,
       questions: [],
@@ -234,7 +231,7 @@ export default {
               points: q.default_points || 'N/A',
               time: q.est_time || 'N/A',
               instructions: q.grading_instructions || 'None',
-              attachment: q.attachment && q.attachment.url ? q.attachment.url : ''
+              attachment: q.attachment || null
             };
 
             switch (q.type) {

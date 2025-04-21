@@ -86,25 +86,57 @@
     this sets the location of the popup on the screen*/
 .form-popup {
   display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 80%;
-    max-height: 80%;
-    border: 3px solid #f1f1f1;
-    z-index: 9;
-    transform: translate(-50%, -50%);
-    overflow: auto;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 80%;
+  max-height: 80%;
+  border: 3px solid #f1f1f1;
+  z-index: 9;
+  transform: translate(-50%, -50%);
+  overflow: auto;
 }
 
 /* Add styles to the form container */
 /* this is the actual popup window*/
+/* Add these overrides */
 .form-container {
-  max-width: 300px;
-  padding: 10px;
+  max-width: 400px;
+  width: 100%;
+  padding: 20px;
   background-color: white;
-  box-sizing: border-box; /* Ensure padding is included in the width */
+  box-sizing: border-box;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
 }
+
+input[type="file"] {
+  padding: 6px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.popup-button-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.popup-button-group .btn {
+  width: auto;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+
+
+
 
 /* Full-width input fields */
 /* styling of textboxes in the popup*/
@@ -371,7 +403,8 @@ uses all other formatting*/
 
 .teacher-questions-container {
   min-height: 100vh;
-  padding-bottom: 50px; /* Prevent content from cutting off at the bottom */
+  padding-bottom: 50px;
+  /* Prevent content from cutting off at the bottom */
   background-color: #43215a;
   display: flex;
   flex-direction: column;
@@ -379,6 +412,7 @@ uses all other formatting*/
   list-style-type: none;
   padding-left: 0;
 }
+
 .question-box {
   background: #f8f8f8;
   padding: 15px;
@@ -388,7 +422,8 @@ uses all other formatting*/
   cursor: pointer;
   transition: transform 0.2s;
   max-width: 800px;
-  min-width: 500px; /* ✅ Add this line */
+  min-width: 500px;
+  /* ✅ Add this line */
   margin-left: auto;
   margin-right: auto;
   font-size: 18px;
@@ -425,7 +460,8 @@ uses all other formatting*/
 }
 
 .button-group button.active {
-  background-color: #9d6cd3 !important; /* A darker purple for selected state */
+  background-color: #9d6cd3 !important;
+  /* A darker purple for selected state */
   color: white;
 }
 
@@ -437,7 +473,7 @@ uses all other formatting*/
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -446,17 +482,20 @@ uses all other formatting*/
 
 .form-popup-modal {
   background: white;
-  padding: 2rem;
+  padding: 2rem 2rem;
   border-radius: 10px;
   width: 500px;
   max-height: 90%;
   overflow-y: auto;
+  align-items: center;
+  box-sizing: border-box;
 }
 
 .theme-teacher {
   --banner-color: #ddc5f5;
   --text-color: #222;
-  --card-bg: #ffffff; /* ✅ Define this missing variable */
+  --card-bg: #ffffff;
+  /* ✅ Define this missing variable */
   background-color: #fdfdfd;
   min-height: 100vh;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -468,7 +507,8 @@ uses all other formatting*/
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap; /* ✅ allows wrap on small screens */
+  flex-wrap: wrap;
+  /* ✅ allows wrap on small screens */
   gap: 20px;
   padding: 15px 30px;
   background-color: var(--banner-color);
@@ -480,13 +520,16 @@ uses all other formatting*/
 }
 
 .banner-title {
-  flex: 1 1 auto; /* ✅ allows shrink/grow */
+  flex: 1 1 auto;
+  /* ✅ allows shrink/grow */
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 28px;         /* 🔍 Adjust this value as needed */
-  font-weight: 700;        /* ✅ Optional: make it bolder */
+  font-size: 28px;
+  /* 🔍 Adjust this value as needed */
+  font-weight: 700;
+  /* ✅ Optional: make it bolder */
   letter-spacing: 0.5px
 }
 
@@ -498,14 +541,17 @@ uses all other formatting*/
   padding: 30px;
   text-align: center;
   background-color: var(--card-bg);
-  border-radius: 0; /* Optional: remove rounding if full width */
-  box-shadow: none; /* Optional: remove if not needed anymore */
+  border-radius: 0;
+  /* Optional: remove rounding if full width */
+  box-shadow: none;
+  /* Optional: remove if not needed anymore */
 }
 
 .t_banner-actions {
   display: flex;
   gap: 15px;
-  flex-shrink: 0; /* ✅ don’t let buttons get squished */
+  flex-shrink: 0;
+  /* ✅ don’t let buttons get squished */
   flex-wrap: wrap;
 }
 
@@ -519,7 +565,8 @@ uses all other formatting*/
   border-radius: 5px;
   text-decoration: none;
   cursor: pointer;
-  white-space: nowrap; /* ✅ prevent text wrapping inside button */
+  white-space: nowrap;
+  /* ✅ prevent text wrapping inside button */
   transition: background-color 0.3s ease;
 }
 
@@ -529,12 +576,14 @@ uses all other formatting*/
 
 .button-row {
   display: flex;
-  justify-content: center; /* centers items horizontally */
+  justify-content: center;
+  /* centers items horizontally */
   align-items: center;
   text-align: center;
   gap: 15px;
   flex-wrap: wrap;
-  width: 100%; /* ensures it fills the parent width */
+  width: 100%;
+  /* ensures it fills the parent width */
   margin: 20px 0;
 }
 
@@ -553,6 +602,7 @@ uses all other formatting*/
   align-items: center;
   gap: 10px;
 }
+
 
 /*styling for generating a test on teacher template page*/
 
@@ -583,10 +633,12 @@ uses all other formatting*/
   user-select: none;
   color: #888;
 }
+
 .correct-answer {
   color: green;
   font-weight: bold;
 }
+
 /*matching block styling for test creation*/
 .matching-container {
   display: flex;
@@ -602,7 +654,8 @@ uses all other formatting*/
 }
 
 
-.matching-prompts, .matching-answers {
+.matching-prompts,
+.matching-answers {
   width: 48%;
 }
 
@@ -632,5 +685,23 @@ uses all other formatting*/
   text-align: right;
   margin-top: 10px;
 }
-/*end of test draft question styling*/
 
+.btn {
+  background-color: #04AA6D;     /* ✅ Green */
+  color: white;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.btn:hover {
+  opacity: 1;
+}
+
+
+
+/*end of test draft question styling*/

@@ -13,11 +13,12 @@
         path: '/PubViewTB',
         query: {
           name: selectedTestBank,
-          textbook_id: $route.query.textbook_id,
-          testbank_id: $route.query.testbank_id  // ✅ Add this!
+          textbook_id: textbookId,
+          testbank_id: $route.query.testbank_id,  // ✅ Add this!
+          title: $route.query.title
         }
       }">
-        <button class="p_button">Return to Test Banks</button>
+        <button class="p_button">Return to Draft Pools</button>
       </router-link>
 
 
@@ -25,7 +26,7 @@
 
       <div id="feedbackContainer">
         <p v-if="loading">Loading feedback...</p>
-        <p v-else-if="feedbackList.length === 0">No questions in this test bank have feedback yet.</p>
+        <p v-else-if="feedbackList.length === 0">No questions in this draft pool have feedback yet.</p>
 
         <div v-else>
           <div v-for="(entry, index) in feedbackList" :key="index"
@@ -53,7 +54,7 @@
           </div>
 
           <!-- ✅ Feedback popup -->
-          <div v-if="showFeedbackForm" class="popup-overlay" @click.self="closeFeedbackForm">
+          <div v-if="showFeedbackForm" class="popup-overlay">
             <div class="form-popup-modal">
               <h2>Leave Feedback</h2>
               <textarea v-model="feedbackText" rows="5" placeholder="Enter your comment here..."></textarea>
@@ -76,6 +77,7 @@ export default {
   data() {
     return {
       testbankId: null,
+      textbookId: this.$route.query.textbook_id || null,
       selectedTestBank: '',
       feedbackList: [],
       loading: true,
@@ -89,7 +91,7 @@ export default {
   async mounted() {
     const query = this.$route.query;
     this.testbankId = parseInt(query.testbank_id);
-    this.selectedTestBank = query.title || 'No Test Bank Selected';
+    this.selectedTestBank = query.title || 'No Draft Pool Selected';
 
     const token = localStorage.getItem('token');
     if (token) {

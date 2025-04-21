@@ -33,7 +33,7 @@
       <hr>
 
       <!-- Delete Confirm Popup -->
-      <div class="popup-overlay" v-if="showDeleteConfirm" @click.self="showDeleteConfirm = false">
+      <div class="popup-overlay" v-if="showDeleteConfirm">
         <div class="form-popup-modal">
           <div class="form-container">
             <h2 style="text-align:center;">Confirm Removal</h2>
@@ -47,7 +47,7 @@
       </div>
 
       <!-- Info Message Popup -->
-      <div class="popup-overlay" v-if="showInfoPopup" @click.self="showInfoPopup = false">
+      <div class="popup-overlay" v-if="showInfoPopup">
         <div class="form-popup-modal">
           <div class="form-container">
             <p style="text-align:center;">{{ popupMessage }}</p>
@@ -80,46 +80,67 @@
       </div>
 
       <!-- Create New Test Popup -->
-      <div class="popup-overlay" v-if="showCreateTestWarning" @click.self="showCreateTestWarning = false">
-        <div class="form-popup-modal">
-          <form class="form-container" @submit.prevent="goToCreateTest">
-            <label><strong>Test Name:</strong></label>
-            <input type="text" v-model="testOptions.testName" placeholder="Enter a name for this test" required />
+      <div class="center large-paragraph" style="color:#222">
+        <div class="popup-overlay" v-if="showCreateTestWarning">
+          <div class="form-popup-modal">
+            <form class="form-container" @submit.prevent="goToCreateTest">
+              <label><strong>Test Name:</strong></label>
+              <input type="text" v-model="testOptions.testName" placeholder="Enter a name for this test" required />
 
-            <!-- Cover Page Checkbox -->
-            <label class="checkbox-label">
-              <input type="checkbox" v-model="testOptions.coverPage" />
-              Add a cover page
-            </label>
-            <label><strong>Select Template:</strong></label>
-            <div class="button-group">
-              <button type="button" :class="{ active: testOptions.selectedTemplate === 'All Questions' }"
-                @click="testOptions.selectedTemplate = 'All Questions'">
-                All Questions
-              </button>
-              <button type="button" :class="{ active: testOptions.selectedTemplate === 'Multiple Choice' }"
-                @click="testOptions.selectedTemplate = 'Multiple Choice'">
-                Multiple Choice
-              </button>
-              <button type="button" :class="{ active: testOptions.selectedTemplate === 'Short Answer/Essay' }"
-                @click="testOptions.selectedTemplate = 'Short Answer/Essay'">
-                Short Answer/Essay
-              </button>
-            </div>
-
-            <label><strong>Embedded Graphic:</strong></label>
-            <input type="file" accept="image/*" @change="handleGraphicUpload" />
-            <div v-if="testOptions.graphicPreview" style="margin-top: 10px;">
-              <p><strong>Preview:</strong></p>
-              <img :src="testOptions.graphicPreview" alt="Uploaded Graphic Preview"
-                style="max-width: 100%; max-height: 200px; border: 1px solid #ccc;" />
-            </div>
+              <!-- Cover Page Checkbox -->
+              <label class="checkbox-label">
+                <input type="checkbox" v-model="testOptions.coverPage" />
+                Add a cover page
+              </label>
 
 
+              <label><strong>Select Question Types for Your Test:</strong></label>
+              <div class="checkbox-group">
+                <label>
+                  <input type="checkbox" value="All Questions" v-model="testOptions.selectedTypes" />
+                  All Questions
+                </label>
+                <label>
+                  <input type="checkbox" value="True/False" v-model="testOptions.selectedTypes" />
+                  True/False
+                </label>
+                <label>
+                  <input type="checkbox" value="Multiple Choice" v-model="testOptions.selectedTypes" />
+                  Multiple Choice
+                </label>
+                <label>
+                  <input type="checkbox" value="Short Answer" v-model="testOptions.selectedTypes" />
+                  Short Answer
+                </label>
+                <label>
+                  <input type="checkbox" value="Essay" v-model="testOptions.selectedTypes" />
+                  Essay
+                </label>
+                <label>
+                  <input type="checkbox" value="Matching" v-model="testOptions.selectedTypes" />
+                  Matching
+                </label>
+                <label>
+                  <input type="checkbox" value="Fill in the Blank" v-model="testOptions.selectedTypes" />
+                  Fill in the Blank
+                </label>
+              </div>
 
-            <button type="submit" class="btn">Yes, Continue</button>
-            <button type="button" class="btn cancel" @click="showCreateTestWarning = false">Cancel</button>
-          </form>
+
+              <label><strong>Embedded Graphic:</strong></label>
+              <input type="file" accept="image/*" @change="handleGraphicUpload" />
+              <div v-if="testOptions.graphicPreview" style="margin-top: 10px;">
+                <p><strong>Preview:</strong></p>
+                <img :src="testOptions.graphicPreview" alt="Uploaded Graphic Preview"
+                  style="max-width: 100%; max-height: 200px; border: 1px solid #ccc;" />
+              </div>
+
+
+
+              <button type="submit" class="btn">Yes, Continue</button>
+              <button type="button" class="btn cancel" @click="showCreateTestWarning = false">Cancel</button>
+            </form>
+          </div>
         </div>
       </div>
 
@@ -171,13 +192,13 @@
           <strong>Essay Instructions:</strong> {{ q.grading_instructions || 'None' }}
         </div>
 
+        <span><strong>Grading Instructions:</strong> {{ q.grading_instructions || 'None' }}</span>
+
         <div v-if="q.attachment && q.attachment.url">
           <p><strong>Attached Image:</strong></p>
-          <img :src="q.attachment.url" alt="Question Attachment:"
-            style="max-width: 100%; max-height: 400px; margin-bottom: 10px;" />
+          <img :src="q.attachment.url" alt="Attachment" style="max-width: 100%; max-height: 300px; margin: 10px 0;" />
         </div>
 
-        <span><strong>Grading Instructions:</strong> {{ q.grading_instructions || 'None' }}</span>
 
         <!-- Action buttons -->
         <div v-if="selectedQuestionId === q.id" class="button-group">
@@ -223,7 +244,8 @@ export default {
         selectedTemplate: '',
         graphicFile: null,
         graphicFileName: '',
-        graphicPreview: ''
+        graphicPreview: '',
+        selectedTypes: [], //array of selected question types
       },
       showDeleteConfirm: false,
       questionIdToDelete: null,
@@ -271,7 +293,7 @@ export default {
 
 
 
-   
+
     async fetchQuestions() {
       if (!this.testBankId) return;
       try {
@@ -366,7 +388,8 @@ export default {
           courseId: this.courseId,
           courseTitle: this.courseTitle,
           testBankId: this.testBankId,
-          testBankName: this.testBankName
+          testBankName: this.testBankName, 
+          selectedTypes: JSON.stringify(this.testOptions.selectedTypes) // Pass as stringified array
         }
       });
     }
@@ -386,9 +409,6 @@ export default {
   flex-direction: column;
 }
 
-.form-popup {
-  width: 300px;
-}
 
 .question-box {
   background-color: #ffffff;
@@ -421,11 +441,10 @@ export default {
   cursor: pointer;
 }
 
-.form-popup-modal ul {
-  padding-left: 0;
-}
-
-.form-popup-modal li {
-  margin: 10px 0;
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* left-align the group */
+  margin-bottom: 10px;
 }
 </style>
