@@ -542,10 +542,8 @@ def copy_question_to_course(question_id):
 
             # Copy metadata
             cur.execute("""
-                INSERT INTO attachments_metadata (attachments_id, key, value)
-                SELECT %s, key, value
-                FROM attachments_metadata
-                WHERE attachments_id = %s;
+                INSERT INTO attachments_metadata (attachment_id, reference_id, reference_value)
+                VALUES (%s, %s, 'question')
             """, (new_attachment_id, attachment_id))
 
             # Update question with new attachment_id
@@ -689,10 +687,8 @@ def copy_question_to_textbook(question_id):
 
             # Copy metadata
             cur.execute("""
-                INSERT INTO attachments_metadata (attachments_id, key, value)
-                SELECT %s, key, value
-                FROM attachments_metadata
-                WHERE attachments_id = %s;
+                INSERT INTO attachments_metadata (attachment_id, reference_id, reference_type)
+                VALUES (%s, %s, 'question')
             """, (new_attachment_id, attachment_id))
 
             # Update question with new attachment_id
