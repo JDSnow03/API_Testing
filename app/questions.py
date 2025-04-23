@@ -537,7 +537,7 @@ def copy_question_to_course(question_id):
                 FROM attachments
                 WHERE attachments_id = %s
                 RETURNING attachments_id;
-            """, (attachment_id))
+            """, (attachment_id,))
             new_attachment_id = cur.fetchone()[0]
 
             # Copy metadata
@@ -679,12 +679,12 @@ def copy_question_to_textbook(question_id):
         if attachment_id:
             # Copy attachment row
             cur.execute("""
-                INSERT INTO attachments (file_name, file_path, storage_bucket, uploaded_by)
-                SELECT file_name, file_path, storage_bucket, %s
+                INSERT INTO attachments (name, filepath)
+                SELECT name, filepath
                 FROM attachments
                 WHERE attachments_id = %s
                 RETURNING attachments_id;
-            """, (user_id, attachment_id))
+            """, (attachment_id,))
             new_attachment_id = cur.fetchone()[0]
 
             # Copy metadata
