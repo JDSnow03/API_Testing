@@ -247,7 +247,7 @@
           <input type="text" v-model="time" required />
 
           <label><b>Grading Instructions</b></label>
-          <input type="text" v-model="instructions" required />
+          <input type="text" v-model="grading_instructions" required />
 
           <!-- Show Upload Only When Creating -->
           <div v-if="!editingQuestionId">
@@ -310,7 +310,7 @@ export default {
       answerChoices: '',
       points: '',
       time: '',
-      instructions: '',
+      grading_instructions: '',
       image: '',
       imagePreview: '',
       selectedQuestionType: '',
@@ -355,11 +355,10 @@ export default {
       this.showAddToTBModal = false;
     },
     async assignQuestionToTestBank(testbankId) {
-      if (!this.questionToAddToTB || !this.courseId) return; //////
+      if (!this.questionToAddToTB) return;
       try {
         await api.post(`/testbanks/${testbankId}/questions`, {
-          question_ids: [this.questionToAddToTB],
-          course_id: this.courseId //////
+          question_ids: [this.questionToAddToTB]
         }, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
@@ -500,7 +499,7 @@ export default {
               case 'Essay':
                 return {
                   ...base,
-                  instructions: question.instructions || ''
+                  instructions: question.grading_instructions || ''
                 };
               default:
                 return base;
@@ -586,7 +585,7 @@ export default {
           est_time: parseInt(this.time),
           chapter_number: this.chapter,
           section_number: this.section,
-          grading_instructions: this.instructions,
+          grading_instructions: this.grading_instructions,
           type: this.selectedQuestionType,
           source: 'manual',
           course_id: this.courseId
@@ -651,7 +650,7 @@ export default {
               postData.append('answer', this.answer);
               break;
             case 'Essay':
-              postData.append('grading_instructions', this.instructions);
+              postData.append('grading_instructions', this.grading_instructions);
               break;
           }
 
@@ -692,7 +691,7 @@ export default {
               postData.answer = this.answer;
               break;
             case 'Essay':
-              postData.grading_instructions = this.instructions;
+              postData.grading_instructions = this.grading_instructions;
               break;
           }
 

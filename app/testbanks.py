@@ -119,209 +119,54 @@ def get_teacher_testbanks_by_course():
 # Add Questions to Testbank 
 # This endpoint allows teachers to add questions to their testbanks
 # It expects a JSON payload with a list of question_ids
-# @testbank_bp.route('/<int:testbank_id>/questions', methods=['POST'])
-# def add_questions_to_testbank(testbank_id):
-#     auth_data = authorize_request()
-#     if isinstance(auth_data, tuple):
-#         return jsonify(auth_data[0]), auth_data[1]
-
-#     # Only teachers can use this route
-#     if auth_data.get("role") != "teacher":
-#         return jsonify({"error": "Only teachers can add questions to testbanks"}), 403
-
-#     user_id = auth_data["user_id"]
-#     data = request.get_json()
-#     question_ids = data.get("question_ids")
-
-#     if not question_ids or not isinstance(question_ids, list):
-#         return jsonify({"error": "question_ids must be a list of integers"}), 400
-
-#     conn = Config.get_db_connection()
-#     cursor = conn.cursor()
-
-#     # Verify the testbank is owned by the teacher
-#     cursor.execute("""
-#         SELECT owner_id FROM Test_bank WHERE testbank_id = %s;
-#     """, (testbank_id,))
-#     result = cursor.fetchone()
-
-#     if not result:
-#         return jsonify({"error": "Testbank not found"}), 404
-#     if result[0] != user_id:
-#         return jsonify({"error": "You do not own this testbank"}), 403
-
-#     # Insert each question_id into testbank_questions
-#     for qid in question_ids:
-#         try:
-#             cursor.execute("""
-#                 INSERT INTO test_bank_questions (test_bank_id, question_id)
-#                 VALUES (%s, %s)
-#                 ON CONFLICT DO NOTHING;
-#             """, (testbank_id, qid))
-#         except Exception as e:
-#             conn.rollback()
-#             return jsonify({"error": f"Failed to insert question {qid}: {str(e)}"}), 500
-
-#     conn.commit()
-#     cursor.close()
-#     conn.close()
-
-#     return jsonify({"message": "Questions added to testbank successfully"}), 201
-
-
 @testbank_bp.route('/<int:testbank_id>/questions', methods=['POST'])
 def add_questions_to_testbank(testbank_id):
     auth_data = authorize_request()
     if isinstance(auth_data, tuple):
         return jsonify(auth_data[0]), auth_data[1]
 
+    # Only teachers can use this route
     if auth_data.get("role") != "teacher":
         return jsonify({"error": "Only teachers can add questions to testbanks"}), 403
 
-    teacher_id = auth_data["user_id"]
+    user_id = auth_data["user_id"]
     data = request.get_json()
     question_ids = data.get("question_ids")
-    course_id = data.get("course_id")
 
     if not question_ids or not isinstance(question_ids, list):
         return jsonify({"error": "question_ids must be a list of integers"}), 400
-    if not course_id:
-        return jsonify({"error": "Missing course_id"}), 400
 
     conn = Config.get_db_connection()
-    cur = conn.cursor()
+    cursor = conn.cursor()
 
-    # Verify the testbank belongs to this teacher
-    cur.execute("SELECT owner_id FROM Test_bank WHERE testbank_id = %s;", (testbank_id,))
-    result = cur.fetchone()
+    # Verify the testbank is owned by the teacher
+    cursor.execute("""
+        SELECT owner_id FROM Test_bank WHERE testbank_id = %s;
+    """, (testbank_id,))
+    result = cursor.fetchone()
+
     if not result:
         return jsonify({"error": "Testbank not found"}), 404
-    if result[0] != teacher_id:
+    if result[0] != user_id:
         return jsonify({"error": "You do not own this testbank"}), 403
 
-    added_qids = []
-
+    # Insert each question_id into testbank_questions
     for qid in question_ids:
-        # Check if teacher already owns the question
-        cur.execute("SELECT id FROM Questions WHERE id = %s AND owner_id = %s;", (qid, teacher_id))
-        owned = cur.fetchone()
-
-        if owned:
-            new_qid = owned[0]
-        else:
-            # Copy the published question
-            cur.execute("""
-                SELECT id, question_text, type, true_false_answer, default_points, est_time,
-                       grading_instructions, source, chapter_number, section_number
-                FROM Questions
-                WHERE id = %s AND is_published = TRUE;
-            """, (qid,))
-            q = cur.fetchone()
-            if not q:
-                continue
-
-            (
-                source_qid, question_text, qtype, tf_answer, points, est_time,
-                grading, source, chapter, section
-            ) = q
-
-            # Insert cloned question
-            cur.execute("""
-                INSERT INTO Questions (
-                    question_text, type, true_false_answer, default_points, est_time,
-                    grading_instructions, source, chapter_number, section_number,
-                    owner_id, course_id, textbook_id, is_published
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NULL, FALSE)
-                RETURNING id;
-            """, (
-                question_text, qtype, tf_answer, points, est_time,
-                grading, source, chapter, section,
-                teacher_id, course_id
-            ))
-            new_qid = cur.fetchone()[0]
-
-            # Copy attachment via attachments_metadata
-            cur.execute("""
-                SELECT a.attachments_id, a.name, a.filepath
-                FROM attachments a
-                JOIN attachments_metadata am ON am.attachment_id = a.attachments_id
-                WHERE am.reference_id = %s AND am.reference_type = 'question';
-            """, (source_qid,))
-            attachment = cur.fetchone()
-
-            if attachment:
-                original_attachment_id, name, filepath = attachment
-
-                # Insert new attachment
-                cur.execute("""
-                    INSERT INTO attachments (name, filepath)
-                    VALUES (%s, %s)
-                    RETURNING attachments_id;
-                """, (name, filepath))
-                new_attachment_id = cur.fetchone()[0]
-
-                # Link new attachment to new question
-                cur.execute("""
-                    INSERT INTO attachments_metadata (attachment_id, reference_id, reference_type)
-                    VALUES (%s, %s, 'question');
-                """, (new_attachment_id, new_qid))
-
-            # Copy structure based on type
-            if qtype == "Multiple Choice":
-                cur.execute("""
-                    SELECT option_text, is_correct
-                    FROM QuestionOptions WHERE question_id = %s;
-                """, (source_qid,))
-                for opt_text, is_correct in cur.fetchall():
-                    cur.execute("""
-                        INSERT INTO QuestionOptions (question_id, option_text, is_correct)
-                        VALUES (%s, %s, %s);
-                    """, (new_qid, opt_text, is_correct))
-
-            elif qtype == "Matching":
-                cur.execute("""
-                    SELECT prompt_text, match_text
-                    FROM QuestionMatches WHERE question_id = %s;
-                """, (source_qid,))
-                for prompt, match in cur.fetchall():
-                    cur.execute("""
-                        INSERT INTO QuestionMatches (question_id, prompt_text, match_text)
-                        VALUES (%s, %s, %s);
-                    """, (new_qid, prompt, match))
-
-            elif qtype == "Fill in the Blank":
-                cur.execute("""
-                    SELECT correct_text
-                    FROM QuestionFillBlanks WHERE question_id = %s;
-                """, (source_qid,))
-                for (correct_text,) in cur.fetchall():
-                    cur.execute("""
-                        INSERT INTO QuestionFillBlanks (question_id, correct_text)
-                        VALUES (%s, %s);
-                    """, (new_qid, correct_text))
-
-        # Link to the testbank
-        cur.execute("""
-            INSERT INTO test_bank_questions (test_bank_id, question_id)
-            VALUES (%s, %s)
-            ON CONFLICT DO NOTHING;
-        """, (testbank_id, new_qid))
-
-        added_qids.append(new_qid)
+        try:
+            cursor.execute("""
+                INSERT INTO test_bank_questions (test_bank_id, question_id)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING;
+            """, (testbank_id, qid))
+        except Exception as e:
+            conn.rollback()
+            return jsonify({"error": f"Failed to insert question {qid}: {str(e)}"}), 500
 
     conn.commit()
-    cur.close()
+    cursor.close()
     conn.close()
 
-    return jsonify({
-        "message": "Questions added successfully",
-        "linked_question_ids": added_qids
-    }), 201
-
-
-
-
+    return jsonify({"message": "Questions added to testbank successfully"}), 201
 
 # GET Questions in Testbank
 # This endpoint allows teachers to view all questions in a specific testbank
