@@ -355,10 +355,11 @@ export default {
       this.showAddToTBModal = false;
     },
     async assignQuestionToTestBank(testbankId) {
-      if (!this.questionToAddToTB) return;
+      if (!this.questionToAddToTB || !this.courseId) return; //////
       try {
         await api.post(`/testbanks/${testbankId}/questions`, {
-          question_ids: [this.questionToAddToTB]
+          question_ids: [this.questionToAddToTB],
+          course_id: this.courseId //////
         }, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
