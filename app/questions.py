@@ -542,7 +542,7 @@ def copy_question_to_course(question_id):
 
             # Copy metadata
             cur.execute("""
-                INSERT INTO attachments_metadata (attachment_id, reference_id, reference_value)
+                INSERT INTO attachments_metadata (attachment_id, reference_id, reference_type)
                 VALUES (%s, %s, 'question')
             """, (new_attachment_id, attachment_id))
 
