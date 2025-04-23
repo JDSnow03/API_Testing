@@ -512,7 +512,7 @@ def copy_question_to_course(question_id):
                 chapter_number, section_number
             )
             SELECT owner_id, type, question_text, default_points, source,
-                FALSE, %s, textbook_id, attachment_id,
+                FALSE, %s, NULL, attachment_id,
                 true_false_answer, est_time, grading_instructions,
                 chapter_number, section_number
             FROM questions

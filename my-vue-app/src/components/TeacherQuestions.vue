@@ -799,7 +799,7 @@ export default {
       this.section = question.section;
       this.points = question.points;
       this.time = question.time;
-      this.instructions = question.instructions;
+      this.instructions = question.grading_instructions;
       this.answer = question.answer || '';
       this.selectedQuestionType = question.type;
 
