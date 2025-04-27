@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://api-testing-yfy6.onrender.com',
+  baseURL: 'https://localhost:5000',
   responseType: 'json'
 });
 
@@ -46,7 +46,7 @@ async function refreshToken() {
   if (!currentToken) return null;
 
   try {
-    const res = await axios.post('https://api-testing-yfy6.onrender.com/auth/refresh', {
+    const res = await axios.post('https://localhost:5000/auth/refresh', {
       token: currentToken
     });
 

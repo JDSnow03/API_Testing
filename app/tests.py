@@ -23,7 +23,7 @@ def get_draft_questions():
     cur = conn.cursor()
 
     try:
-        # Step 1: Fetch filtered questions from test bank
+        # Fetch filtered questions from test bank
         if type_filter == "Multiple Choice":
             cur.execute("""
                 SELECT q.id, q.owner_id, q.type, q.question_text, q.default_points, q.est_time, q.source,
@@ -54,14 +54,14 @@ def get_draft_questions():
             for row in cur.fetchall()
         ]
 
-        # Step 2: Enrich by type
+        # Enrich by type
         supabase = Config.get_supabase_client()
 
         for q in questions:
             qid = q['id']
             qtype = q['type']
 
-            # Attachment (if present)
+            # Attachment 
             if q.get('attachment_id'):
                 cur.execute("""
                     SELECT name, filepath FROM attachments WHERE attachments_id = %s;
@@ -170,7 +170,7 @@ def finalize_test():
     try:
         questions = []
 
-        # Step 1: Fetch questions based on logic
+        # Fetch questions based on logic
         if type_filter == "All Questions" and test_bank_id:
             # Validate test bank exists
             cursor.execute("SELECT testbank_id FROM test_bank WHERE testbank_id = %s", (test_bank_id,))
@@ -201,7 +201,7 @@ def finalize_test():
         if not questions:
             return jsonify({"error": "No questions found"}), 400
 
-        # Step 2: Insert into tests (template_id set to NULL)
+        # Inserting into tests (template_id set to NULL)
         cursor.execute("""
             INSERT INTO tests (name, course_id, template_id, user_id, status, estimated_time, test_instrucutions)
             VALUES (%s, %s, NULL, %s, 'Final', %s, %s)
@@ -212,14 +212,14 @@ def finalize_test():
         ))
         test_id = cursor.fetchone()[0]
 
-        # Step 3: Add questions to test_metadata
+        # Adding questions to test_metadata
         for question_id, points in questions:
             cursor.execute("""
                 INSERT INTO test_metadata (test_id, question_id, points)
                 VALUES (%s, %s, %s)
             """, (test_id, question_id, points))
 
-        # Step 4: Update total points
+        # Update total points
         cursor.execute("""
             UPDATE tests
             SET points_total = (
@@ -237,7 +237,7 @@ def finalize_test():
 
     except Exception as e:
         import traceback
-        traceback.print_exc()  # ✅ prints full traceback to terminal
+        traceback.print_exc()  #prints full traceback to terminal
         conn.rollback()
         return jsonify({"error": f"Something went wrong: {str(e)}"}), 500
 
@@ -584,7 +584,7 @@ def publish_test(test_id):
     cur = conn.cursor()
 
     try:
-        # Step 1: Confirm the test exists and is owned by this user
+        # Confirm the test exists and is owned by this user
         cur.execute("""
             SELECT user_id, status, filename FROM tests WHERE tests_id = %s
         """, (test_id,))
@@ -604,7 +604,7 @@ def publish_test(test_id):
         if status != "Final":
             return jsonify({"error": "Only finalized tests can be published"}), 400
 
-        # Step 2: Attempt to update test status
+        # Attempt to update test status
         cur.execute("""
             UPDATE tests SET status = 'Published' WHERE tests_id = %s
         """, (test_id,))
@@ -614,7 +614,7 @@ def publish_test(test_id):
         # - ensure questions exist
         # - update points_total
 
-        # Step 3: Handle Supabase file copy
+        # Handle Supabase file copy
         if filename:
             supabase = Config.get_supabase_client()
 

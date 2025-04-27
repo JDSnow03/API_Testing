@@ -3,18 +3,21 @@ import io
 from flask import Blueprint, Response, jsonify
 from app.config import Config
 from .auth import authorize_request
-
+# Create blueprint for Downloads
 downloads_bp = Blueprint('downloads', __name__)
 
 @downloads_bp.route('/users', methods=['GET'])
 def download_users_csv():
+    # Verify user authorization
     auth_data = authorize_request()
     if isinstance(auth_data, tuple):
         return auth_data
 
+    # Only allow webmasters to download
     if auth_data["role"] != "webmaster":
         return {"error": "Unauthorized"}, 403
 
+    # Fetch user data from database
     conn = Config.get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT user_id, username, role FROM users")
@@ -31,6 +34,7 @@ def download_users_csv():
     cursor.close()
     conn.close()
 
+    # Return the CSV file as a downloadable response
     return Response(
         output.getvalue(),
         mimetype='text/csv',
@@ -39,13 +43,16 @@ def download_users_csv():
 
 @downloads_bp.route('/courses', methods=['GET'])
 def download_courses_csv():
+    # Verify user authorization
     auth_data = authorize_request()
     if isinstance(auth_data, tuple):
         return auth_data
 
+    # Only allow webmasters to download
     if auth_data["role"] != "webmaster":
         return {"error": "Unauthorized"}, 403
 
+    # Fetch course data and teacher username
     conn = Config.get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -71,6 +78,7 @@ def download_courses_csv():
     cursor.close()
     conn.close()
 
+    # Return the CSV file
     return Response(
         output.getvalue(),
         mimetype='text/csv',
@@ -79,13 +87,17 @@ def download_courses_csv():
 
 @downloads_bp.route('/textbook', methods=['GET'])
 def download_textbooks_csv():
+
+    # Verify user authorization
     auth_data = authorize_request()
     if isinstance(auth_data, tuple):
         return auth_data
 
+    # Only allow webmasters to download
     if auth_data["role"] != "webmaster":
         return {"error": "Unauthorized"}, 403
 
+    # Fetch textbook data and publisher username
     conn = Config.get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -114,6 +126,7 @@ def download_textbooks_csv():
     cursor.close()
     conn.close()
 
+    # Return the CSV file
     return Response(
         output.getvalue(),
         mimetype='text/csv',
@@ -122,10 +135,12 @@ def download_textbooks_csv():
 
 @downloads_bp.route('/questions', methods=['GET'])
 def download_questions_csv():
+    # Verify user authorization
     auth_data = authorize_request()
     if isinstance(auth_data, tuple):
         return jsonify(auth_data[0]), auth_data[1]
 
+    # Allow webmasters, publishers, and teachers to download
     if auth_data["role"] not in ("webmaster", "publisher", "teacher"):
         return jsonify({"error": "Unauthorized"}), 403
 
@@ -160,7 +175,7 @@ def download_questions_csv():
         details = ""
         attachment_info = ""
 
-        # Handle question type answers
+        # Fetch answer information based on question type
         if qtype == 'True/False':
             answer = str(q[headers.index('true_false_answer')])
 
@@ -203,6 +218,7 @@ def download_questions_csv():
             attachment = cur.fetchone()
             if attachment:
                 try:
+                    # Generate signed URL for download access
                     supabase = Config.get_supabase_client()
                     signed = supabase.storage.from_(Config.ATTACHMENT_BUCKET).create_signed_url(
                         path=attachment[1],
@@ -212,7 +228,7 @@ def download_questions_csv():
                 except Exception as e:
                     attachment_info = f"{attachment[0]} (URL failed)"
 
-        # Write the row
+        # Write the row to the CSV for this question
         writer.writerow([
             qid, qtype, qtext, answer, 
             details, username, attachment_info
@@ -222,6 +238,7 @@ def download_questions_csv():
     conn.close()
 
     output.seek(0)
+    # Return the CSV file
     return Response(
         output,
         mimetype='text/csv',

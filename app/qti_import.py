@@ -33,21 +33,21 @@ qti_bp = Blueprint('qti', __name__)
 #     filename = secure_filename(file.filename)
 
 #     try:
-#         # ✅ Save to /tmp for debugging
+#         #Save to /tmp for debugging
 #         temp_path = f"/tmp/{filename}"
 #         file.save(temp_path)
-#         print(f"✅ File saved to /tmp: {temp_path}")
+#         print(f"File saved to /tmp: {temp_path}")
 
-#         # ✅ Validate ZIP and check imsmanifest.xml
+#         #Validate ZIP and check imsmanifest.xml
 #         with zipfile.ZipFile(temp_path, 'r') as zip_ref:
 #             if not any(os.path.basename(name) == "imsmanifest.xml" for name in zip_ref.namelist()):
 #                 return jsonify({'error': 'Invalid QTI zip: imsmanifest.xml not found.'}), 400
 
-#         # ✅ Read bytes again for Supabase
+#         #Read bytes again for Supabase
 #         with open(temp_path, "rb") as f:
 #             file_bytes = f.read()
 
-#         # ✅ Upload to Supabase
+#         #Upload to Supabase
 #         timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
 #         file_path = f"{user_id}/import{timestamp}_{filename}"
 
@@ -58,7 +58,7 @@ qti_bp = Blueprint('qti', __name__)
 #             file_options={"content-type": "application/zip"}
 #         )
 
-#         print("✅ Uploaded to Supabase:", file_path)
+#         print("Uploaded to Supabase:", file_path)
 
 #         return jsonify({
 #             'message': 'File uploaded successfully',
@@ -84,7 +84,7 @@ def upload_qti_file():
     file = request.files['file']
     filename = secure_filename(file.filename)
     file_bytes = BytesIO(file.read())
-    # Validate that it's a zip and contains imsmanifest.xml
+    # Makes sure zip file contains imsmanifest.xml
     try:
         with zipfile.ZipFile(file_bytes, 'r') as zip_ref:
             if not any(os.path.basename(name) == "imsmanifest.xml" for name in zip_ref.namelist()):
@@ -220,7 +220,7 @@ def save_qti_questions(import_id):
 
     user_id = auth_data.get("user_id")
     data = request.get_json()
-    course_id = data.get("course_id")  # Optional from frontend
+    course_id = data.get("course_id")  
 
     try:
         # DB connection
@@ -246,7 +246,6 @@ def save_qti_questions(import_id):
         #################
         
         # Re-extract if missing
-        # ✅ Skip __MACOSX and find the correct main folder
         try:
             # inner_dir = next(
             #     d.path for d in os.scandir(unzipped_folder_path)
@@ -265,13 +264,13 @@ def save_qti_questions(import_id):
 
 
         ###############
-        print(f"📁 Extracted contents of: {unzipped_folder_path}")
+        print(f" Extracted contents of: {unzipped_folder_path}")
         for root, dirs, files in os.walk(unzipped_folder_path):
             for file in files:
-                print(f"📄 {os.path.join(root, file)}")
+                print(f" {os.path.join(root, file)}")
         ###############
 
-        # ✅ Recursively find imsmanifest.xml regardless of depth
+        # Recursively find imsmanifest.xml regardless of depth
         manifest_path = None
         for root, dirs, files in os.walk(unzipped_folder_path):
             if "imsmanifest.xml" in files:
@@ -288,7 +287,7 @@ def save_qti_questions(import_id):
         quiz_title = parsed["quiz_title"]
         questions = parsed["questions"]
 
-        # ✅ Create test bank
+        # Create test bank
         cursor.execute("""
             INSERT INTO test_bank (owner_id, name, course_id)
             VALUES (%s, %s, %s)
@@ -316,23 +315,23 @@ def save_qti_questions(import_id):
 
             question_id = cursor.fetchone()[0]
             
-            # ✅ Link to test bank
+            # Link to test bank
             cursor.execute("""
                 INSERT INTO test_bank_questions (test_bank_id, question_id)
                 VALUES (%s, %s)
             """, (test_bank_id, question_id))
 
-            # 🔗 Handle attachment if it exists
+            # Handle attachment if it exists
             attachment_file = q.get("attachment_file")
             if attachment_file:
                 attachment_filename = os.path.basename(attachment_file)
                 attachment_path = None
-                # 🔍 Walk through all subdirectories in search of the attachment
+                #Walk through all folders in search of the attachment
                 for root, _, files in os.walk(inner_dir):
                     for name in files:
                         if name == attachment_filename:
                             attachment_path = os.path.join(root, name)
-                            print(f"🖼️ Found attachment at: {attachment_path}")
+                            print(f"Found attachment at: {attachment_path}")
                             break
                     if attachment_path:
                         break
@@ -346,8 +345,8 @@ def save_qti_questions(import_id):
                         original_filename = os.path.basename(attachment_file)
                         timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
                         unique_filename = f"{user_id}_{timestamp}_{original_filename}"
-                        supabase_path = f"attachments/{unique_filename}"  # ✅ add this line
-                        # ✅ Upload to Supabase
+                        supabase_path = f"attachments/{unique_filename}" 
+                        #Upload to Supabase
                         try:
                             supabase = Config.get_supabase_client()
                             supabase.storage.from_(Config.ATTACHMENT_BUCKET).upload(
@@ -355,11 +354,11 @@ def save_qti_questions(import_id):
                                 file=file_bytes,
                                 file_options={"content-type": "image/png"}
                             )
-                            print(f"✅ Uploaded to Supabase: {unique_filename}")
+                            print(f"Uploaded to Supabase: {unique_filename}")
                         except Exception as upload_err:
-                            print(f"❌ Upload to Supabase failed: {upload_err}")
+                            print(f"Upload to Supabase failed: {upload_err}")
 
-                    # ✅ Save to DB
+                    # Save to DB
                         try:
                             cursor.execute("""
                                 INSERT INTO Attachments (name, filepath)
@@ -367,17 +366,17 @@ def save_qti_questions(import_id):
                                 RETURNING attachments_id;
                             """, (original_filename, supabase_path))
                             attachment_id = cursor.fetchone()[0]
-                            print(f"📌 Inserted into Attachments DB: {attachment_id}")
+                            print(f"Inserted into Attachments DB: {attachment_id}")
                         except Exception as db_err:
-                            print(f"❌ Failed to insert into Attachments table: {db_err}")
+                            print(f"Failed to insert into Attachments table: {db_err}")
 
-                    # ✅ Link metadata
+                    # Link metadata
                         cursor.execute("""
                             INSERT INTO Attachments_MetaData (attachment_id, reference_id, reference_type)
                             VALUES (%s, %s, 'question');
                         """, (attachment_id, question_id))
 
-                    # ✅ Update question with attachment ID
+                    # Update question with attachment ID
                         cursor.execute("""
                             UPDATE Questions
                             SET attachment_id = %s
@@ -385,10 +384,10 @@ def save_qti_questions(import_id):
                         """, (attachment_id, question_id))
 
                     except Exception as e:
-                        print(f"❌ General error handling attachment: {e}")
+                        print(f"General error handling attachment: {e}")
 
                 else:
-                    print(f"❌ Attachment not found locally: {attachment_path}")
+                    print(f"Attachment not found locally: {attachment_path}")
 
 
             # Save multiple choice options
@@ -422,7 +421,7 @@ def save_qti_questions(import_id):
 
             inserted.append(question_id)
 
-        # ✅ Mark import as processed
+        # Mark import as processed
         cursor.execute("""
             UPDATE QTI_Imports
             SET status = 'processed'

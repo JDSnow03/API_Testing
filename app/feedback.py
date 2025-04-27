@@ -6,9 +6,10 @@ import psycopg2.extras
 # Create Blueprint for feedback
 feedback_bp = Blueprint('feedback', __name__)
 
-
+# Create feedback
 @feedback_bp.route('/create', methods=['POST'])
 def create_feedback():
+    # Verify user authorization
     auth_data = authorize_request()
     if isinstance(auth_data, tuple):
         return jsonify(auth_data[0]), auth_data[1]
@@ -55,6 +56,7 @@ def create_feedback():
 # Get feedback for a specific test
 @feedback_bp.route('/test/<int:test_id>', methods=['GET'])
 def get_feedback_by_test(test_id):
+    # Verify user authorization
     auth_data = authorize_request()
     if isinstance(auth_data, tuple):
         return jsonify(auth_data[0]), auth_data[1]
@@ -105,6 +107,7 @@ def get_feedback_by_test(test_id):
 # Get feedback for a specific question with user info
 @feedback_bp.route('/question/<int:question_id>', methods=['GET'])
 def get_feedback_by_question(question_id):
+    # Verify user authorization
     auth_data = authorize_request()
     if isinstance(auth_data, tuple):
         return jsonify(auth_data[0]), auth_data[1]
@@ -157,6 +160,7 @@ def get_feedback_by_question(question_id):
 # Update feedback 
 @feedback_bp.route('/update/<int:feedback_id>', methods=['PATCH'])
 def update_feedback(feedback_id):
+    # Verify user authorization
     auth_data = authorize_request()
     if isinstance(auth_data, tuple):
         return jsonify(auth_data[0]), auth_data[1]
@@ -216,6 +220,7 @@ def update_feedback(feedback_id):
 # Delete feedback
 @feedback_bp.route('/delete/<int:feedback_id>', methods=['DELETE'])
 def delete_feedback(feedback_id):
+    # Verify user authorization
     auth_data = authorize_request()
     if isinstance(auth_data, tuple):
         return jsonify(auth_data[0]), auth_data[1]
@@ -244,6 +249,7 @@ def delete_feedback(feedback_id):
 # Get feedback for a specific testbank 
 @feedback_bp.route('/<int:testbank_id>/questions-with-feedback', methods=['GET'])
 def get_questions_with_feedback_by_testbank(testbank_id):
+    # Verify user authorization
     auth_data = authorize_request()
     if isinstance(auth_data, tuple):
         return jsonify(auth_data[0]), auth_data[1]
@@ -301,6 +307,7 @@ def get_questions_with_feedback_by_testbank(testbank_id):
 # Get feedback to list only questions with feedback
 @feedback_bp.route('/questions-with-feedback', methods=['GET'])
 def get_all_questions_with_feedback():
+    # Verify user authorization
     auth_data = authorize_request()
     if isinstance(auth_data, tuple):
         return jsonify(auth_data[0]), auth_data[1]
