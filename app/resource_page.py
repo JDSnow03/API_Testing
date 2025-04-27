@@ -71,7 +71,7 @@ def get_published_questions_for_course_textbook():
     return jsonify({"questions": questions}), 200
 
 
-# Adding questions to the teachers arsenal (Tested worked)
+# Adding questions to the teachers arsenal
 @resources_bp.route('/questions/copy', methods=['POST'])
 def copy_published_question_for_teacher():
     auth_data = authorize_request()
@@ -210,7 +210,7 @@ def copy_published_question_for_teacher():
     }), 201
 
 
-# Get all published questions from all users (Tested Worked)
+# Get all published questions from all users
 @resources_bp.route('/published', methods=['GET'])
 def get_published_questions():
     auth_data = authorize_request()
@@ -412,7 +412,7 @@ def get_full_published_testbanks_by_course():
     return jsonify({"testbanks": testbanks}), 200
 
 
-# This is for teachers to copy a published testbank to their own arsenal (so the testbank and the questions)
+# This is for teachers to copy a published testbank to their own arsenal
 @resources_bp.route('/testbanks/copy', methods=['POST'])
 def copy_published_testbank_for_teacher():
     auth_data = authorize_request()

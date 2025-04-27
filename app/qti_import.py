@@ -5,71 +5,16 @@ from app.config import Config
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from utilities.qti_parser import parse_qti_file_patched
-from utilities.file_handler import extract_qti_zip_from_supabase, extract_qti_zip_from_supabase_2 #################
+from utilities.file_handler import extract_qti_zip_from_supabase
 from io import BytesIO
 import os
 import shutil
 import zipfile
-########
 import traceback
 
 qti_bp = Blueprint('qti', __name__)
 
 # PHASE 1.A - Upload QTI file to Supabase Storage
-
-#########
-# @qti_bp.route('/upload', methods=['POST'])
-# def upload_qti_file():
-#     auth_data = authorize_request()
-#     if isinstance(auth_data, tuple):
-#         return jsonify(auth_data[0]), auth_data[1]
-
-#     user_id = auth_data.get("user_id")
-
-#     if 'file' not in request.files:
-#         return jsonify({'error': 'No file provided'}), 400
-
-#     file = request.files['file']
-#     filename = secure_filename(file.filename)
-
-#     try:
-#         #Save to /tmp for debugging
-#         temp_path = f"/tmp/{filename}"
-#         file.save(temp_path)
-#         print(f"File saved to /tmp: {temp_path}")
-
-#         #Validate ZIP and check imsmanifest.xml
-#         with zipfile.ZipFile(temp_path, 'r') as zip_ref:
-#             if not any(os.path.basename(name) == "imsmanifest.xml" for name in zip_ref.namelist()):
-#                 return jsonify({'error': 'Invalid QTI zip: imsmanifest.xml not found.'}), 400
-
-#         #Read bytes again for Supabase
-#         with open(temp_path, "rb") as f:
-#             file_bytes = f.read()
-
-#         #Upload to Supabase
-#         timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-#         file_path = f"{user_id}/import{timestamp}_{filename}"
-
-#         supabase = Config.get_supabase_client()
-#         supabase.storage.from_(Config.QTI_BUCKET).upload(
-#             path=file_path,
-#             file=file_bytes,
-#             file_options={"content-type": "application/zip"}
-#         )
-
-#         print("Uploaded to Supabase:", file_path)
-
-#         return jsonify({
-#             'message': 'File uploaded successfully',
-#             'file_path': f"{Config.QTI_BUCKET}/{file_path}"
-#         }), 201
-
-#     except Exception as e:
-#         traceback.print_exc()
-#         return jsonify({'error': str(e)}), 500
-#########
-
 @qti_bp.route('/upload', methods=['POST'])
 def upload_qti_file():
     auth_data = authorize_request()
@@ -84,7 +29,7 @@ def upload_qti_file():
     file = request.files['file']
     filename = secure_filename(file.filename)
     file_bytes = BytesIO(file.read())
-    # Makes sure zip file contains imsmanifest.xml
+    # Validate that it's a zip and contains imsmanifest.xml
     try:
         with zipfile.ZipFile(file_bytes, 'r') as zip_ref:
             if not any(os.path.basename(name) == "imsmanifest.xml" for name in zip_ref.namelist()):
@@ -188,7 +133,7 @@ def parse_qti_import(import_id):
             return jsonify({"error": "Import not found or unauthorized."}), 404
 
         file_path = result[0]
-        #local_file_path = f"./{file_path}/imsmanifest.xml"  # Adjust pathing if needed
+        #local_file_path = f"./{file_path}/imsmanifest.xml"
         inner_dir = next(os.scandir(file_path)).path
         local_file_path = os.path.join(inner_dir, "imsmanifest.xml")
 
@@ -220,7 +165,7 @@ def save_qti_questions(import_id):
 
     user_id = auth_data.get("user_id")
     data = request.get_json()
-    course_id = data.get("course_id")  
+    course_id = data.get("course_id")  # Optional from frontend
 
     try:
         # DB connection
@@ -241,45 +186,22 @@ def save_qti_questions(import_id):
 
         # Local extraction path (will contain the folder after unzipping)
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        #################
-        unzipped_folder_path = extract_qti_zip_from_supabase_2(original_supabase_path, import_id) 
-        #################
+        unzipped_folder_path = extract_qti_zip_from_supabase(original_supabase_path, import_id)
+
         
         # Re-extract if missing
+        if not os.path.exists(unzipped_folder_path):
+            print("Folder not found locally. Re-extracting from Supabase...")
+            unzipped_folder_path = extract_qti_zip_from_supabase(original_supabase_path, import_id)
+
+        
+        # Get the inner folder (e.g., group-4-project-quiz-export-3)
         try:
-            # inner_dir = next(
-            #     d.path for d in os.scandir(unzipped_folder_path)
-            #     if d.is_dir() and "__MACOSX" not in d.name
-            # )
-            # If there's no subdirectory, use the extracted path directly
-            try:
-                inner_dir = next(
-                    d.path for d in os.scandir(unzipped_folder_path)
-                    if d.is_dir() and "__MACOSX" not in d.name
-                )
-            except StopIteration:
-                inner_dir = unzipped_folder_path  # fallback if no folder inside
+            inner_dir = next(os.scandir(unzipped_folder_path)).path
         except StopIteration:
-            return jsonify({"error": "No valid folder found inside extracted zip!"}), 500
-
-
-        ###############
-        print(f" Extracted contents of: {unzipped_folder_path}")
-        for root, dirs, files in os.walk(unzipped_folder_path):
-            for file in files:
-                print(f" {os.path.join(root, file)}")
-        ###############
-
-        # Recursively find imsmanifest.xml regardless of depth
-        manifest_path = None
-        for root, dirs, files in os.walk(unzipped_folder_path):
-            if "imsmanifest.xml" in files:
-                manifest_path = os.path.join(root, "imsmanifest.xml")
-                break
-
-        if not manifest_path:
-            traceback.print_exc()
-            return jsonify({"error": "imsmanifest.xml not found in extracted content!"}), 400
+            return jsonify({"error": "Extracted folder is empty!"}), 500
+        
+        manifest_path = os.path.join(inner_dir, "imsmanifest.xml")
 
 
         # Parse file
@@ -326,7 +248,7 @@ def save_qti_questions(import_id):
             if attachment_file:
                 attachment_filename = os.path.basename(attachment_file)
                 attachment_path = None
-                #Walk through all folders in search of the attachment
+                # Walk through all subdirectories in search of the attachment
                 for root, _, files in os.walk(inner_dir):
                     for name in files:
                         if name == attachment_filename:
@@ -345,8 +267,8 @@ def save_qti_questions(import_id):
                         original_filename = os.path.basename(attachment_file)
                         timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
                         unique_filename = f"{user_id}_{timestamp}_{original_filename}"
-                        supabase_path = f"attachments/{unique_filename}" 
-                        #Upload to Supabase
+                        supabase_path = f"attachments/{unique_filename}"  # add this line
+                        # Upload to Supabase
                         try:
                             supabase = Config.get_supabase_client()
                             supabase.storage.from_(Config.ATTACHMENT_BUCKET).upload(
@@ -438,7 +360,6 @@ def save_qti_questions(import_id):
 
     except Exception as e:
         traceback.print_exc()
-
         conn.rollback()
         return jsonify({"error": str(e)}), 500
 

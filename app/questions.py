@@ -484,7 +484,7 @@ def delete_question(question_id):
 
     return jsonify({"message": "Question and any linked attachment deleted successfully."}), 200
 
-
+# Copy question to a course
 @question_bp.route('/<int:question_id>/copy_to_course', methods=['POST'])
 def copy_question_to_course(question_id):
     auth_data = authorize_request()
@@ -594,7 +594,7 @@ def copy_question_to_course(question_id):
         cur.close()
         conn.close()
 
-
+# Get all tests where this question is used (Final or Published)
 @question_bp.route('/<int:question_id>/used_in', methods=['GET'])
 def check_question_used_in_tests(question_id):
     auth_data = authorize_request()

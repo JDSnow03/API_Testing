@@ -191,9 +191,6 @@ def get_all_textbooks():
     return jsonify({"textbooks": textbooks}), 200
 
 
-# DELETE Textbook by textbook_id
-# no delete for textbook becaseu a textbook is linked to course and course is linked to question
-# so we can't delete a textbook without deleting the course and the questions
 
 
 

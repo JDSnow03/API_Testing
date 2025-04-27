@@ -20,26 +20,19 @@ def create_teacher_testbank():
     data = request.get_json()
     testbank_name = data.get("testbank_name")
     course_id = data.get("course_id")
-    #####################
     chapter_number = data.get("chapter_number")
     section_number = data.get("section_number")
-    #####################
 
     if not testbank_name or not course_id:
         return jsonify({"error": "Missing testbank_name or course_id"}), 400
 
-    #if not testbank_name or not course_id or chapter_number is None or section_number is None:
-    #    return jsonify({"error": "Missing testbank_name, course_id, chapter_number, or section_number"}), 400
+    
 
 
     conn = Config.get_db_connection()
     cursor = conn.cursor()
 
-    #insert_query = sql.SQL("""
-    #    INSERT INTO Test_bank (name, course_id, owner_id)
-    #    VALUES (%s, %s, %s)
-    #    RETURNING testbank_id;
-    #""")
+    
     insert_query = sql.SQL("""
         INSERT INTO Test_bank (name, course_id, owner_id, chapter_number, section_number)
         VALUES (%s, %s, %s, %s, %s)
@@ -47,7 +40,7 @@ def create_teacher_testbank():
     """)
 
 
-    #cursor.execute(insert_query, (testbank_name, course_id, auth_data["user_id"]))
+    
     cursor.execute(insert_query, (testbank_name, course_id, auth_data["user_id"], chapter_number, section_number))
 
     testbank_id = cursor.fetchone()[0]
@@ -56,11 +49,7 @@ def create_teacher_testbank():
     cursor.close()
     conn.close()
 
-    #return jsonify({
-    #    "message": "Testbank created for teacher",
-    #    "testbank_id": testbank_id,
-    #    "course_id": course_id
-    #}), 201
+
 
     return jsonify({
         "message": "Testbank created for teacher",
@@ -195,14 +184,6 @@ def get_questions_in_testbank(testbank_id):
         return jsonify({"error": "You do not own this testbank"}), 403
 
     # Base query: get questions linked to testbank
-    #cur.execute("""
-    #    SELECT q.id, q.question_text, q.type, q.chapter_number, q.section_number
-    #    FROM test_bank_questions tbq
-    #    JOIN questions q ON tbq.question_id = q.id
-    #    WHERE tbq.test_bank_id = %s;
-    #""", (testbank_id,))
-
-    ###################
     cur.execute("""
     SELECT q.id, q.question_text, q.type, q.chapter_number, q.section_number,
         q.default_points, q.est_time, q.grading_instructions, q.attachment_id
@@ -210,7 +191,6 @@ def get_questions_in_testbank(testbank_id):
         JOIN questions q ON tbq.question_id = q.id
         WHERE tbq.test_bank_id = %s;
     """, (testbank_id,))
-    ###################
     
     column_names = [desc[0] for desc in cur.description]
     questions = [dict(zip(column_names, row)) for row in cur.fetchall()]
@@ -655,7 +635,6 @@ def remove_question_from_testbank(testbank_id, question_id):
     cursor = conn.cursor()
 
     # Check ownership of the testbank
-    # OLD: cursor.execute("SELECT owner_id FROM Test_bank WHERE testbank_id = %s", (testbank_id,))
     cursor.execute("SELECT owner_id, is_published FROM Test_bank WHERE testbank_id = %s", (testbank_id,))
     result = cursor.fetchone()
     if not result:
