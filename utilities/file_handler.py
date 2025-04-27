@@ -37,7 +37,7 @@ def extract_qti_zip_from_supabase(supabase_path: str, import_id: int) -> str:
 
 #     user_id = supabase_path.split("/")[0]
 
-#     # 🛠️ Fix: Get the actual response content
+#     # Fix: Get the actual response content
 #     response = supabase.storage.from_(Config.QTI_BUCKET).download(supabase_path)
 
 #     if not hasattr(response, 'read') and hasattr(response, 'content'):
@@ -66,7 +66,7 @@ def extract_qti_zip_from_supabase_2(supabase_path: str, import_id: int) -> str:
 
     user_id = supabase_path.split("/")[0]
 
-    # ✅ Step 1: Get signed URL
+    # Get signed URL
     try:
         signed_url_resp = supabase.storage.from_(Config.QTI_BUCKET).create_signed_url(
             supabase_path,
@@ -77,20 +77,20 @@ def extract_qti_zip_from_supabase_2(supabase_path: str, import_id: int) -> str:
             raise Exception(f"Could not generate signed URL for {supabase_path}")
     except Exception as e:
         traceback.print_exc()
-        print("❌ Failed to generate signed URL:", str(e))
+        print("Failed to generate signed URL:", str(e))
         raise Exception("Signed URL creation failed")
 
-    # ✅ Step 2: Use requests to download
+    # Use requests to download
     try:
         response = requests.get(signed_url)
         response.raise_for_status()
         zip_bytes = BytesIO(response.content)
     except Exception as e:
         traceback.print_exc()
-        print("❌ Failed to download zip from signed URL:", str(e))
+        print("Failed to download zip from signed URL:", str(e))
         raise Exception("Failed to download ZIP from Supabase signed URL")
 
-    # ✅ Step 3: Extract ZIP
+    # Extract ZIP
     base_extract_path = os.path.join("qti-uploads", user_id, f"import_{import_id}")
     os.makedirs(base_extract_path, exist_ok=True)
 
@@ -99,7 +99,7 @@ def extract_qti_zip_from_supabase_2(supabase_path: str, import_id: int) -> str:
             zip_ref.extractall(base_extract_path)
     except Exception as e:
         traceback.print_exc()
-        print("❌ Failed to extract ZIP:", str(e))
+        print("Failed to extract ZIP:", str(e))
         raise Exception("Failed to extract ZIP contents")
 
     return base_extract_path
