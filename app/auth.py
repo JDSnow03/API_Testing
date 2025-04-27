@@ -13,21 +13,21 @@ def authorize_request():
         return {"error": "Missing or invalid token"}, 401
 
     try:
-        # ✅ Extract token after "Bearer "
+        # Extract token after "Bearer "
         jwt_token = auth_header.split(" ")[1]
         secret_key = os.getenv("JWT_SECRET")
 
-        # ✅ Decode the JWT token
+        # Decode the JWT token
         decoded_token = jwt.decode(jwt_token, secret_key, algorithms=["HS256"])
 
-        return decoded_token  # ✅ Contains user_id & role
+        return decoded_token  # Contains user_id & role
 
     except jwt.ExpiredSignatureError:
         return {"error": "Token has expired"}, 401
     except jwt.InvalidTokenError:
         return {"error": "Invalid token"}, 401
 
-# ✅ 1️⃣ Create a User (Backend Only)
+# Create a User (Backend Only)
 @auth_bp.route('/create_user', methods=['POST'])
 def create_user():
     """Creates a user in Supabase Auth and stores metadata in PostgreSQL."""
@@ -40,8 +40,8 @@ def create_user():
         return jsonify({"error": "Invalid input"}), 400
 
     try:
-        # ✅ 1️⃣ Create User in Supabase Auth
-        supabase_client = current_app.supabase  # ✅ Using current_app to access Supabase
+        # Create User in Supabase Auth
+        supabase_client = current_app.supabase  # Using current_app to access Supabase
         response = supabase_client.auth.admin.create_user({
             "email": f"{username}@example.com",  # Supabase requires an email
             "password": password,
@@ -57,8 +57,8 @@ def create_user():
 
         user_id = response.user.id  # Supabase assigns a UUID
 
-        # ✅ 2️⃣ Insert User into PostgreSQL Users Table
-        db_conn = Config.get_db_connection()  # ✅ Using Config because it creates a new access  to PostgreSQL
+        # Insert User into PostgreSQL Users Table
+        db_conn = Config.get_db_connection()  # Using Config because it creates a new access  to PostgreSQL
         cursor = db_conn.cursor()
         cursor.execute(
             "INSERT INTO Users (user_id, username, role) VALUES (%s, %s, %s)",
@@ -73,7 +73,7 @@ def create_user():
         return jsonify({"error": str(e)}), 500
 
 
-# ✅ 2️⃣ User Login (Frontend)
+# User Login (Frontend)
 @auth_bp.route('/login', methods=['POST'])
 def login():
     """Authenticates a user and returns a JWT token."""
@@ -86,7 +86,7 @@ def login():
     
 
     try:
-        # ✅ 1️⃣ Authenticate User with Supabase
+        # Authenticate User with Supabase
         supabase_client = current_app.supabase
         response = supabase_client.auth.sign_in_with_password({
             "email": f"{username}@example.com",
@@ -98,7 +98,7 @@ def login():
 
         access_token = response.session.access_token
 
-        # ✅ 2️⃣ Retrieve User Metadata from PostgreSQL
+        # Retrieve User Metadata from PostgreSQL
         db_conn = Config.get_db_connection()
         cursor = db_conn.cursor()
         cursor.execute("SELECT user_id, role FROM Users WHERE username = %s", (username,))
@@ -110,7 +110,7 @@ def login():
 
         user_id, role = user
 
-        # ✅ 3️⃣ Generate JWT Token
+        # Generate JWT Token
         secret_key = os.getenv("JWT_SECRET")  # Use env variable for security
         token_payload = {
             "user_id": str(user_id),
@@ -129,7 +129,7 @@ def protected():
     """Example of a protected route that requires a valid JWT."""
     auth_data = authorize_request()
 
-    if isinstance(auth_data, tuple):  # ✅ If token is invalid, return error
+    if isinstance(auth_data, tuple):  # If token is invalid, return error
         return jsonify(auth_data[0]), auth_data[1]
 
     return jsonify({
@@ -138,7 +138,7 @@ def protected():
         "role": auth_data["role"]
     })
 
-# ✅ 3️⃣ Refresh Token (Frontend) 
+# Refresh Token (Frontend) 
 @auth_bp.route("/refresh", methods=["POST"])
 def refresh_token():
     data = request.get_json()

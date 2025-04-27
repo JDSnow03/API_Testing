@@ -7,7 +7,7 @@ from app.config import Config
 course_bp = Blueprint('courses', __name__)
 
 # CREATE Course
-#only teachers can create courses
+# only teachers can create courses
 @course_bp.route('', methods=['POST'])
 def create_course():
     auth_data = authorize_request()
@@ -181,8 +181,7 @@ def update_course(course_id):
     return jsonify({"message": "Course updated successfully"}), 200
 
 
-# DELETE Course by course_id
-# we wont have a delete course rn we will delete through supabase
+
 
 
 

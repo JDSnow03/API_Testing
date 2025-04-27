@@ -62,6 +62,3 @@ def upload_attachment():
         "filename": original_filename,
         "filepath": filepath
     }), 201
-
-# For the sake of the example, we will not implement the rest of the CRUD operations for Attachments.
-# Also for the attachment it will only be like with the questions not attachment choices
