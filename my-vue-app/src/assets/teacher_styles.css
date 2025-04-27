@@ -423,7 +423,6 @@ uses all other formatting*/
   transition: transform 0.2s;
   max-width: 800px;
   min-width: 500px;
-  /* ✅ Add this line */
   margin-left: auto;
   margin-right: auto;
   font-size: 18px;
@@ -461,7 +460,6 @@ uses all other formatting*/
 
 .button-group button.active {
   background-color: #9d6cd3 !important;
-  /* A darker purple for selected state */
   color: white;
 }
 
@@ -495,7 +493,6 @@ uses all other formatting*/
   --banner-color: #ddc5f5;
   --text-color: #222;
   --card-bg: #ffffff;
-  /* ✅ Define this missing variable */
   background-color: #fdfdfd;
   min-height: 100vh;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -508,7 +505,6 @@ uses all other formatting*/
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  /* ✅ allows wrap on small screens */
   gap: 20px;
   padding: 15px 30px;
   background-color: var(--banner-color);
@@ -521,15 +517,12 @@ uses all other formatting*/
 
 .banner-title {
   flex: 1 1 auto;
-  /* ✅ allows shrink/grow */
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 28px;
-  /* 🔍 Adjust this value as needed */
   font-weight: 700;
-  /* ✅ Optional: make it bolder */
   letter-spacing: 0.5px
 }
 
@@ -542,16 +535,13 @@ uses all other formatting*/
   text-align: center;
   background-color: var(--card-bg);
   border-radius: 0;
-  /* Optional: remove rounding if full width */
   box-shadow: none;
-  /* Optional: remove if not needed anymore */
 }
 
 .t_banner-actions {
   display: flex;
   gap: 15px;
   flex-shrink: 0;
-  /* ✅ don’t let buttons get squished */
   flex-wrap: wrap;
 }
 
@@ -566,7 +556,6 @@ uses all other formatting*/
   text-decoration: none;
   cursor: pointer;
   white-space: nowrap;
-  /* ✅ prevent text wrapping inside button */
   transition: background-color 0.3s ease;
 }
 
@@ -577,13 +566,11 @@ uses all other formatting*/
 .button-row {
   display: flex;
   justify-content: center;
-  /* centers items horizontally */
   align-items: center;
   text-align: center;
   gap: 15px;
   flex-wrap: wrap;
   width: 100%;
-  /* ensures it fills the parent width */
   margin: 20px 0;
 }
 
@@ -687,7 +674,7 @@ uses all other formatting*/
 }
 
 .btn {
-  background-color: #04AA6D;     /* ✅ Green */
+  background-color: #04AA6D;   
   color: white;
   padding: 12px 20px;
   font-size: 16px;

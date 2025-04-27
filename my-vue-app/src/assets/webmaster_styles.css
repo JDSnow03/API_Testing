@@ -42,7 +42,7 @@
 .theme-webmaster {
   --banner-color: #b5e2ff;
   --text-color: #222;
-  --card-bg: #ffffff; /* ✅ Define this missing variable */
+  --card-bg: #ffffff; 
   background-color: #fdfdfd;
   min-height: 100vh;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -54,7 +54,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap; /* ✅ allows wrap on small screens */
+  flex-wrap: wrap; 
   gap: 20px;
   padding: 15px 30px;
   background-color: var(--banner-color);
@@ -66,20 +66,20 @@
 }
 
 .banner-title {
-  flex: 1 1 auto; /* ✅ allows shrink/grow */
+  flex: 1 1 auto; 
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 28px;         /* 🔍 Adjust this value as needed */
-  font-weight: 700;        /* ✅ Optional: make it bolder */
+  font-size: 28px;        
+  font-weight: 700;        
   letter-spacing: 0.5px
 }
 
 .banner-actions {
   display: flex;
   gap: 15px;
-  flex-shrink: 0; /* ✅ don’t let buttons get squished */
+  flex-shrink: 0; 
   flex-wrap: wrap;
 }
 
@@ -93,7 +93,7 @@
   border-radius: 5px;
   text-decoration: none;
   cursor: pointer;
-  white-space: nowrap; /* ✅ prevent text wrapping inside button */
+  white-space: nowrap;
   transition: background-color 0.3s ease;
 }
 
@@ -118,9 +118,9 @@
 
 .button-row {
   display: flex;
-  justify-content: center; /* centers items horizontally */
+  justify-content: center; 
   align-items: center;
   gap: 15px;
-  width: 100%; /* ensures it fills the parent width */
+  width: 100%; 
   margin: 20px 0;
 }

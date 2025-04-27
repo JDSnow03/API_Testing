@@ -62,7 +62,7 @@
 }
 
 .p_button:hover {
-  background-color: #ADEBB3; /* a slightly darker green */
+  background-color: #ADEBB3; 
 }
 
 /* === Page Styling === */
@@ -82,7 +82,7 @@
 .large-paragraph {
   font-size: 1.3rem;
   line-height: 1.6;
-  color: var(--text-color); /* ✅ Make sure text is dark */
+  color: var(--text-color); 
 }
 
 /* === Popup Modal Styling === */
@@ -129,8 +129,8 @@
   padding: 12px;
   font-size: 16px;
   border: 2px solid #ccc;
-  background-color: rgb(230, 230, 229) !important;         /* ✅ white background */
-  color: #222;                    /* ✅ visible text */
+  background-color: rgb(230, 230, 229) !important;       
+  color: #222;                  
   border-radius: 6px
 }
 
@@ -152,7 +152,7 @@
 .theme-publisher {
   --banner-color: #b6ffbb;
   --text-color: #222;
-  --card-bg: #ffffff; /* ✅ Define this missing variable */
+  --card-bg: #ffffff;
   background-color: #fdfdfd;
   min-height: 100vh;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -164,7 +164,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap; /* ✅ allows wrap on small screens */
+  flex-wrap: wrap; 
   gap: 20px;
   padding: 15px 30px;
   background-color: var(--banner-color);
@@ -176,13 +176,13 @@
 }
 
 .banner-title {
-  flex: 1 1 auto; /* ✅ allows shrink/grow */
+  flex: 1 1 auto; 
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 28px;         /* 🔍 Adjust this value as needed */
-  font-weight: 700;        /* ✅ Optional: make it bolder */
+  font-size: 28px;        
+  font-weight: 700;        
   letter-spacing: 0.5px
 }
 
@@ -194,14 +194,14 @@
   padding: 30px;
   text-align: center;
   background-color: var(--card-bg);
-  border-radius: 0; /* Optional: remove rounding if full width */
-  box-shadow: none; /* Optional: remove if not needed anymore */
+  border-radius: 0; 
+  box-shadow: none; 
 }
 
 .banner-actions {
   display: flex;
   gap: 15px;
-  flex-shrink: 0; /* ✅ don’t let buttons get squished */
+  flex-shrink: 0; 
   flex-wrap: wrap;
 }
 
@@ -215,7 +215,7 @@
   border-radius: 5px;
   text-decoration: none;
   cursor: pointer;
-  white-space: nowrap; /* ✅ prevent text wrapping inside button */
+  white-space: nowrap; 
   transition: background-color 0.3s ease;
 }
 
@@ -225,17 +225,17 @@
 
 .button-row {
   display: flex;
-  justify-content: center; /* centers items horizontally */
+  justify-content: center; 
   align-items: center;
   gap: 15px;
-  width: 100%; /* ensures it fills the parent width */
+  width: 100%; 
   margin: 20px 0;
 }
 
 
 .teacher-questions-container {
   min-height: 100vh;
-  padding-bottom: 50px; /* Prevent content from cutting off at the bottom */
+  padding-bottom: 50px;
   background-color: #fdfdfd;
   display: flex;
   flex-direction: column;
@@ -252,7 +252,7 @@
   cursor: pointer;
   transition: transform 0.2s;
   max-width: 800px;
-  min-width: 500px; /* ✅ Add this line */
+  min-width: 500px; 
   margin-left: auto;
   margin-right: auto;
   text-align: left;
