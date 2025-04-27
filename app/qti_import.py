@@ -200,10 +200,22 @@ def save_qti_questions(import_id):
             inner_dir = next(os.scandir(unzipped_folder_path)).path
         except StopIteration:
             return jsonify({"error": "Extracted folder is empty!"}), 500
+
+
         
-        manifest_path = os.path.join(inner_dir, "imsmanifest.xml")
+        manifest_path = None
+        for root, dirs, files in os.walk(unzipped_folder_path):
+            if "imsmanifest.xml" in files:
+                manifest_path = os.path.join(root, "imsmanifest.xml")
+                break
 
+        if not manifest_path:
+            return jsonify({"error": "imsmanifest.xml not found after extraction!"}), 400
 
+        print(f"Found imsmanifest.xml at: {manifest_path}")
+        
+
+        print(f"Looking for imsmanifest.xml at: {manifest_path}")
         # Parse file
         parsed = parse_qti_file_patched(manifest_path)
         quiz_title = parsed["quiz_title"]
