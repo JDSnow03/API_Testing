@@ -1,6 +1,6 @@
 # my-vue-app/README.md
 
-# My Vue App
+# Print-A-Test App
 
 ## Project Overview
 
@@ -10,9 +10,10 @@ for the creation of paper test documents. Teachers will also have access to publ
 to create testbanks from scratch per their textbook and publish these resources accordingly after finalizing. Webmaster users can download parts or all of the database
 information into .csv files for administrative use. This project was made by Team 8B and is called Print-A-Test.
 
-## Project Structure
+## Project Folder Structure
 
-```
+### Frontend
+
 my-vue-app
 ├── src
 │   ├── assets
@@ -43,7 +44,7 @@ my-vue-app
 ├── package.json                 # Configuration file for npm dependencies
 ├── README.md                    # Documentation for the project
 └── vue.config.js                # Configuration file for Vue CLI
-```
+---
 
 ## Setup Instructions
 All dependencies are located in the package-lock.json file. Please ensure you have 
@@ -71,12 +72,6 @@ Vue: 1.0.0
 4. **Open your browser:**
    Navigate to `http://localhost:8080` to view the application.
 
-## Usage Guidelines
-
-- Upon accessing the application, users will be presented with a welcome page where they can select their role to log in.
-- Each role will redirect to a specific login page. Depending on the role each user will have different features available
-on their designated homepage.
-- The main goal of this application is to allow teachers to download printable tests and corresponding test keys.
 
 ## Project Credits
 CS 499 - 01 Professor James Williamson

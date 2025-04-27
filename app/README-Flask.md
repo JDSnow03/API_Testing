@@ -1,23 +1,10 @@
 # Print-A-Test
 
-> Instantly convert Canvas quizzes into clean, printable exams — no formatting headaches, just full control for educators.
-
 ---
 
-## Overview
+## Project Overview
 
 **Print-A-Test** is a full-stack web application built for teachers and education professionals to streamline the creation of printable tests. It supports manual question creation and Canvas QTI file imports, complete with answer key generation, attachment handling, and custom templates. The platform is role-based and includes permission control for **Teachers**, **Publishers**, and **Webmasters**.
-
----
-
-## Tech Stack
-
-- **Backend:** Python, Flask, PostgreSQL, Supabase (Storage & Auth)
-- **Frontend:** Vue.js
-- **Authentication:** JWT (with Supabase)
-- **Database:** PostgreSQL/Supabase
-- **File Uploads:** Supabase Buckets
-- **Deployment:** `.env` support and modular Flask blueprint structure
 
 ---
 
@@ -47,16 +34,6 @@ API-Testing/
 │   ├── file_handler.py            # Helper functions for handling file uploads and downloads
 │   └── qti_parser.py              # Helper functions for parsing QTI files
 
-
-
-
-### Frontend
-
-
-
-
-
-
 ---
 
 ## Authentication & Roles
@@ -69,17 +46,6 @@ Supabase Auth manages user registration and JWT-based login. Three roles are sup
 
 ---
 
-## Core Features
-
-- **QTI File Importing**: Seamlessly parse Canvas exports and convert them into usable questions.
-- **Manual Question Creation**: Supports Multiple Choice, Matching, Fill-in-the-Blank, Essay, and True/False.
-- **Test Template System**: Teachers can generate printable tests using styled templates with custom point values.
-- **Attachment Handling**: Upload and link images or files to questions via Supabase Buckets.
-- **Role-Based Access Control**: Tailored views and permissions for teachers, publishers, and webmasters.
-- **Feedback System**: Leave comments on questions/tests with duplicate feedback prevention.
-- **Download Tools (Webmaster)**: Export CSV data and manage system-wide test/report downloads.
-
----
 
 ## Installation Guide
 
@@ -120,3 +86,16 @@ Follow these steps to set up the Flask API of the project.
 	or
 
 	python run.py
+
+## Project Credits
+CS 499 - 01 Professor James Williamson
+
+Team 8B: Test Creation Manager P18
+
+Members:
+Paige Smith - Team Leader
+Lauren Williams - Technical Writer
+Rodridguez Stuckey - Technical Lead
+Derrick Snow - Test Lead
+
+Students of UAH, Spring 2025
