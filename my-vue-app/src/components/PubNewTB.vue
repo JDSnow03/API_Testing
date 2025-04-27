@@ -1,16 +1,19 @@
+<!--PubNewTb
+    This is the page where publishes create new draft pools-->
 <template>
   <div class="theme-publisher">
     <div class="top-banner">
+      <!--banner content-->
       <div class="banner-title">Create New Draft Pool</div>
-
       <div class="banner-actions">
         <router-link to="/PubHome" class="p_banner-btn">Home</router-link>
         <router-link to="/" class="p_banner-btn">Log Out</router-link>
       </div>
     </div>
+    <!--page content-->
     <div class="center large-paragraph" style="color:#222">
       <form @submit.prevent="saveTestBank">
-
+        <!-- all required info to make a draft pool-->
         <label for="bankName">Name of Draft Pool:</label>
         <input type="text" id="bankName" v-model="bankName" style="height:20px" required /><br>
 
@@ -34,6 +37,7 @@ import api from '@/api';
 export default {
   name: 'PublisherNewTB',
   data() {
+    // data for the page
     return {
       bankName: '',
       bankChapter: '',
@@ -44,9 +48,12 @@ export default {
     };
   },
   methods: {
+    //This function is used to save the new draft pool to the database
     async saveTestBank() {
+      //makes sure all the fields are filled out
       if (this.bankName && this.bankChapter && this.bankSection && this.textbookId) {
         const testBankData = {
+          //builds the draft pool object
           testbank_name: this.bankName,
           chapter_number: this.bankChapter,
           section_number: this.bankSection,
@@ -59,8 +66,8 @@ export default {
               Authorization: `Bearer ${localStorage.getItem('token')}`
             }
           });
+          // if successful, redirct to the questions page
           console.log('Test bank saved successfully:', response.data);
-          //alert('Test bank saved successfully!');
           this.$router.push({
             path: '/PubQuestions',
             query: {
@@ -68,12 +75,12 @@ export default {
               textbook_id: this.textbookId
             }
           });
+          // if unsuccessful, show error message
         } catch (error) {
           console.error('Error saving test bank:', error);
-          //alert('Failed to save the test bank. Please try again.');
         }
+        //if any fields are empty
       } else {
-        //alert('Please fill out all fields.');
       }
     }
   }
@@ -81,16 +88,10 @@ export default {
 </script>
 
 <style scoped>
+/* import publisher styling*/
 @import '../assets/publisher_styles.css';
 
-.pub-newTB-container {
-  background-color: #17552a;
-  font-family: Arial, sans-serif;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
+/* styling for this page*/
 input[type="submit"] {
   background-color: rgb(48, 191, 223);
   color: black;

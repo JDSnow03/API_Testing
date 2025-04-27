@@ -1,16 +1,18 @@
+<!--PubQuestions
+    Page where publishers can view their questions, make new ones, select a draft pool, or create a new draft pool-->
 <template>
-
   <div class="theme-publisher">
     <div class="top-banner">
+      <!--banner contents-->
       <div class="banner-title">{{ textbookTitle }}</div>
-
       <div class="banner-actions">
         <router-link to="/PubHome" class="p_banner-btn">Home</router-link>
         <router-link to="/" class="p_banner-btn">Log Out</router-link>
       </div>
     </div>
+    <!--page contents-->
 
-    <!-- Edit Blocked Warning Popup -->
+    <!-- Edit Blocked Warning Popup: This will happen if the question is published/uneditable -->
     <div class="popup-overlay" v-if="editBlockedPopup">
       <div class="form-popup-modal">
         <h2>Cannot Edit Question</h2>
@@ -20,10 +22,9 @@
         <button class="btn cancel" @click="editBlockedPopup = false">Cancel</button>
       </div>
     </div>
-
-    <!-- Toolbar -->
     <div class="page-wrapper">
       <div class="button-row">
+        <!--dropdown that shows all of the available draft pools to choose from-->
         <div class="p_dropdown">
           <button class="p_dropbtn">
             {{ selectedTestBank ? selectedTestBank.name : 'Select Draft Pool' }}
@@ -34,11 +35,12 @@
             </a>
           </div>
         </div>
-
+        <!--when draft pool is selected, it takes them to the correct draft pool page-->
         <router-link :to="{ path: 'PubNewTB', query: { title: textbookTitle, textbook_id: textbookId } }">
           <button class="p_button">New Draft Pool</button>
         </router-link>
 
+        <!--question type dropdown, displays questions of that type when selected-->
         <div class="p_dropdown">
           <button class="p_dropbtn">Question Type</button>
           <div class="p_dropdown-content">
@@ -51,6 +53,7 @@
           </div>
         </div>
 
+        <!--create new question-->
         <button class="p_button" @click="edit">New Question</button>
       </div>
 
@@ -62,6 +65,7 @@
       <hr />
 
       <!-- Question List Display -->
+      <!--shows each question and relevant information inside a box-->
       <ul>
         <div v-for="(question, index) in questions" :key="index" class="p_question-box"
           :class="{ selected: selectedQuestionId === question.id }" @click="toggleQuestionSelection(question.id)">
@@ -72,7 +76,7 @@
           <span><strong>Points:</strong> {{ question.points }}</span><br>
           <span><strong>Estimated Time:</strong> {{ question.time }} minutes</span><br>
 
-          <!-- ✅ New Image Section -->
+          <!--New Image Section -->
           <div v-if="question.image_url" style="margin-top: 10px;">
             <strong>Attached Image:</strong><br />
             <img :src="question.image_url" alt="Attached Image" style="max-width: 100%; margin-top: 5px;" />
@@ -106,16 +110,9 @@
             </ul>
           </div>
 
-          <!-- <div v-if="question.type === 'Short Answer'">
-          <strong>Answer:</strong> {{ question.answer || 'Not provided' }}
-        </div> -->
-
-          <!-- <div v-if="question.type === 'Essay'">
-          <strong>Essay Instructions:</strong> {{ question.instructions || 'None' }}
-        </div> -->
-
           <span><strong>Grading Instructions:</strong> {{ question.instructions || 'None' }}</span>
 
+          <!--buttons for each question-->
           <div v-if="selectedQuestionId === question.id" class="p_button-group">
             <button v-if="!question.is_published" @click.stop="editQuestion(question)">Edit</button>
             <button v-if="!question.is_published" @click.stop="deleteQuestion(question.id)">Delete</button>
@@ -207,11 +204,6 @@
               <input type="text" v-model="questionData.answer" />
             </div>
 
-            <!-- <div v-if="selectedQuestionType === 'Short Answer'">
-            <label><b>Answer</b></label>
-            <input type="text" v-model="questionData.answer" />
-          </div> -->
-
             <div v-if="selectedQuestionType === 'Essay'">
             </div>
 
@@ -248,10 +240,12 @@
 </template>
 
 <script>
+//importing the api file to make requests to the backend
 import api from '@/api';
 
 export default {
   name: 'PubQuestions',
+  //data that is used in the page
   data() {
     return {
       textbookTitle: '',
@@ -285,6 +279,7 @@ export default {
     };
   },
   methods: {
+    //this function is used to save questions (create or edit) to the database
     async handleQuestionSave() {
       try {
         let postData;
@@ -292,7 +287,9 @@ export default {
         const isEditing = !!this.editingQuestionId;
         const editingQuestion = this.questions.find(q => q.id === this.editingQuestionId);
 
+        //image upload handling
         if (this.questionData.imageFile) {
+          //image data
           postData = new FormData();
 
           postData.append('file', this.questionData.imageFile);
@@ -304,8 +301,9 @@ export default {
           postData.append('grading_instructions', this.questionData.instructions);
           postData.append('type', this.selectedQuestionType);
           postData.append('source', 'manual');
-          postData.append('textbook_id', this.textbookId);  // 🔄 fixed (was courseId for teachers)
+          postData.append('textbook_id', this.textbookId);
 
+          //handling for each question type
           if (this.selectedQuestionType === 'True/False') {
             postData.append('true_false_answer', this.questionData.answer === 'True');
           } else if (this.selectedQuestionType === 'Multiple Choice') {
@@ -337,7 +335,7 @@ export default {
             postData.append('grading_instructions', this.questionData.instructions);
           }
 
-          // Optional: log FormData for debugging
+          // debugging log
           for (let [key, val] of postData.entries()) {
             console.log(`${key}:`, val);
           }
@@ -400,17 +398,19 @@ export default {
             }
           };
         }
-
+        //do correct API request depending on if it is a new question or an edit
         if (isEditing) {
           await api.patch(`/questions/${this.editingQuestionId}`, postData, config);
         } else {
           await api.post('/questions', postData, config);
         }
-        //alert('Question saved successfully!');
+
+        //after saving
         this.closeForm();
         this.resetForm();
         this.fetchQuestions(this.selectedQuestionType);
 
+        //if there is an error
       } catch (err) {
         let serverMsg = 'Something went wrong.';
         if (err && err.response && err.response.data) {
@@ -421,18 +421,23 @@ export default {
       }
     },
 
+    //This function fetches all of the testbanks for the textbook
     async fetchTestBanks() {
       try {
         const response = await api.get('/testbanks/publisher', {
           params: { textbook_id: this.textbookId },
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
+        //stores testbanks
         this.testBanks = response.data.testbanks;
+        //error handling
       } catch (error) {
         console.error('Error loading test banks:', error);
       }
     },
+    //This functions shows the questions of the selected type
     async fetchQuestions(type) {
+      //which type of question is being shown
       this.selectedQuestionType = type;
       try {
         const response = await api.get(`/questions`, {
@@ -440,6 +445,7 @@ export default {
           params: { textbook_id: this.textbookId, type: type }
         });
         if (Array.isArray(response.data.questions)) {
+          //process the questions
           this.questions = response.data.questions.map((question) => {
             const base = {
               text: question.question_text,
@@ -453,33 +459,40 @@ export default {
               image_url: question.attachment && question.attachment.url ? question.attachment.url : '',
               is_published: question.is_published || false
             };
+            //extra information for each question type
             switch (question.type) {
               case 'True/False': return { ...base, answer: question.true_false_answer };
               case 'Multiple Choice': return { ...base, correctOption: question.correct_option || null, incorrectOptions: question.incorrect_options || [] };
               case 'Matching': return { ...base, pairs: (question.matches || []).map(pair => ({ term: pair.prompt_text, definition: pair.match_text })) };
               case 'Fill in the Blank': return { ...base, blanks: question.blanks || [] };
-              case 'Short Answer': return base; // { ...base, answer: question.answer || '' };
+              case 'Short Answer': return base;
               case 'Essay': return base;
               default: return base;
             }
           });
+          //if there are no questions, show a message
         } else {
           this.questions = [];
         }
+        //error handling
       } catch (error) {
         console.error('Error fetching questions:', error);
         this.questions = [];
       }
     },
+    //This function shows the add to testbank modal
     openAddToTestBank(questionId) {
       this.questionToAddToTB = questionId;
       this.showAddToTBModal = true;
     },
+    //This function closes the add to testbank modal
     closeAddToTBModal() {
       this.questionToAddToTB = null;
       this.showAddToTBModal = false;
     },
+    //This function assigns the question to the draft pool
     async assignQuestionToTestBank(testbankId) {
+      //makes sure the question is selected
       if (!this.questionToAddToTB) return;
       try {
         await api.post(`/testbanks/publisher/${testbankId}/questions`, {
@@ -487,65 +500,72 @@ export default {
         }, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
+        //if successful, show a message and close the modal
         alert('Question successfully added to testbank!');
         this.closeAddToTBModal();
+        //if unsuccessful, show an error message
       } catch (error) {
         console.error('Failed to add question to testbank:', error);
-        // alert('Failed to add question.');
         let errMsg = 'Failed to add question.';
         if (error.response && error.response.data && error.response.data.error) {
           errMsg = error.response.data.error;
         }
-        //alert(errMsg);
       }
     },
-
+    //This function redirects the user to the selected draft pool page
     selectTestBank(tb) {
       this.$router.push({
         name: 'PubViewTB',
         query: {
           testbank_id: tb.testbank_id,
-          name: tb.name,                     // ✅ this is the draft pool name
+          name: tb.name,
           title: this.textbookTitle,
           textbook_id: this.textbookId,
           chapter: tb.chapter_number,
           section: tb.section_number
         }
       });
-
-
     },
+    //This function allows the user to select a question
     toggleQuestionSelection(id) {
       this.selectedQuestionId = this.selectedQuestionId === id ? null : id;
     },
+    //This function allows the user to select a question type to show
     selectQuestionType(type) {
       this.selectedQuestionType = type;
       this.edit();
     },
+    //This function opens the form to edit or create a question
     edit() {
       this.showForm = true;
     },
+    //This function closes the form and resets the data
     closeForm() {
       this.showForm = false;
       this.resetForm();
     },
+    //This function adds a new matching pair to the create/edit form
     addPair() {
       this.matchingPairs.push({ term: '', definition: '' });
     },
+    //This function removes a matching pair from the create/edit form
     removePair(index) {
       this.matchingPairs.splice(index, 1);
     },
+    //This function handles the image upload for the question
     handleImageUpload(event) {
       const file = event.target.files[0];
       if (file) {
         this.questionData.imageFile = file;
         const reader = new FileReader();
+        // Show a preview of the image
         reader.onload = (e) => {
           this.imagePreview = e.target.result;
         };
         reader.readAsDataURL(file);
       }
     },
+    //This function rests the fields in the form
     resetForm() {
       this.questionData = {
         chapter: '',
@@ -557,21 +577,21 @@ export default {
         points: '',
         time: '',
         instructions: '',
-        imageFile: null  // ✅ correct property
+        imageFile: null
       };
       this.selectedQuestionType = '';
       this.matchingPairs = [];
       this.imagePreview = '';
       this.editingQuestionId = null;
-      this.oldMCOptionIds = []; // ✅ reset here
+      this.oldMCOptionIds = [];
 
-      // ✅ Clear the file input manually
+      //Clear the file input manually
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) fileInput.value = '';
     },
 
+    //This function allows the the user to edit a question
     async editQuestion(question) {
-
       try {
         const res = await api.get(`/questions/${question.id}/used_in`, {
           headers: {
@@ -603,7 +623,7 @@ export default {
       this.questionData.answer = question.answer || '';
       this.selectedQuestionType = question.type;
 
-      // 👇 Show existing image if editing
+      // Show existing image if editing
       this.imagePreview = question.image_url || '';
 
       if (question.type === 'Multiple Choice') {
@@ -626,7 +646,7 @@ export default {
 
       this.showForm = true;
     },
-
+    //This function allows the user to delete a question
     async deleteQuestion(id) {
       if (confirm('Are you sure you want to delete this question?')) {
         try {
@@ -636,14 +656,13 @@ export default {
             }
           });
           this.questions = this.questions.filter(q => q.id !== id);
-          //alert('Question deleted.');
         } catch (err) {
           console.error(err);
           alert('Failed to delete question.');
         }
       }
     },
-
+    //This function creats a copy of the question if it cannot be edited
     async createCopyInstead() {
       try {
         const res = await api.post(`/questions/${this.editingQuestionId}/copy_to_textbook`, {
@@ -662,8 +681,8 @@ export default {
         alert('Failed to create a copy of this question.');
       }
     }
-
   },
+  //when the page is loaded, it gets the textbook title and id from the URL and fetches the draft pools
   mounted() {
     this.textbookTitle = this.$route.query.title || 'Book Title';
     this.textbookId = this.$route.query.textbook_id || '';
@@ -675,5 +694,6 @@ export default {
 </script>
 
 <style scoped>
+/* import publisher styles*/
 @import '../assets/publisher_styles.css';
 </style>

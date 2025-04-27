@@ -1,10 +1,12 @@
-<!-- filepath: /c:/Users/laure/Senior-Project/TestCreationVue/src/components/WebmasterLog.vue -->
+<!-- WebmasterLog
+    This is the page where the webmaster logs in-->
 <template>
- <div class="theme-webmaster">
-  <div class="top-banner">
-  <div class="banner-title">Webmaster Login</div>
-  </div>
-
+  <div class="theme-webmaster">
+    <div class="top-banner">
+      <!-- banner content-->
+      <div class="banner-title">Webmaster Login</div>
+    </div>
+    <!--page content-->
     <div class="center large-paragraph" style="color: #222;">
       Please enter your webmaster username and password:
       <br />
@@ -23,7 +25,7 @@
 
       <!-- Show error message if user and password are entered incorrectly -->
       <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-      
+
       <!-- Show loading spinner if the form is submitting -->
       <div v-if="loading" class="loading-message">Logging in...</div>
     </div>
@@ -31,11 +33,13 @@
 </template>
 
 <script>
-import api from '@/api'; // <-- your custom Axios instance with token handling
+//import necessary libraries and components
+import api from '@/api';
 import jwtDecode from 'jwt-decode';
 
 export default {
   data() {
+    //data used in the page
     return {
       username: '',
       password: '',
@@ -44,7 +48,7 @@ export default {
     };
   },
   mounted() {
-    // Optional: Check if token exists and redirect if still valid
+    //Check if token exists and redirect if still valid
     const token = localStorage.getItem('token');
     if (token) {
       try {
@@ -60,66 +64,66 @@ export default {
     }
   },
   methods: {
+    //This function is used to submit the username and password
     async submitForm() {
-  if (!this.username || !this.password) {
-    this.errorMessage = "Please enter both username and password.";
-    return;
-  }
+      //verify the username and password are entered
+      if (!this.username || !this.password) {
+        this.errorMessage = "Please enter both username and password.";
+        return;
+      }
+      //validate the username and password length
+      if (this.username.trim().length < 3 || this.password.trim().length < 6) {
+        this.errorMessage = "Username must be at least 3 characters and password at least 6 characters.";
+        return;
+      }
 
-  if (this.username.trim().length < 3 || this.password.trim().length < 6) {
-    this.errorMessage = "Username must be at least 3 characters and password at least 6 characters.";
-    return;
-  }
+      this.loading = true;
+      this.errorMessage = "";
 
-  this.loading = true;
-  this.errorMessage = "";
+      try {
+        // Send login request 
+        const res = await api.post('/auth/login', {
+          username: this.username.toLowerCase(),
+          password: this.password
+        });
 
-  try {
-    const res = await api.post('/auth/login', {
-      username: this.username.toLowerCase(),
-      password: this.password
-    });
+        const { token, user_id, role } = res.data;
 
-    const { token, user_id, role } = res.data;
+        // Store token and identity in localStorage
+        localStorage.setItem('token', token);
+        localStorage.setItem('user_id', user_id);
+        localStorage.setItem('role', role);
 
-    // Store token and identity in localStorage
-    localStorage.setItem('token', token);
-    localStorage.setItem('user_id', user_id);
-    localStorage.setItem('role', role);
-
-    // Redirect based on role
-    if (role === 'webmaster') {
-      this.$router.push('/WebmasterHome');
-    } else {
-      this.errorMessage = "Only webmasters can log in here.";
-      localStorage.clear(); // Clear stored data for non-webmasters
+        // Redirect based on role
+        if (role === 'webmaster') {
+          this.$router.push('/WebmasterHome');
+        } else {
+          this.errorMessage = "Only webmasters can log in here.";
+          localStorage.clear(); // Clear stored data for non-webmasters
+        }
+        //if login fails
+      } catch (error) {
+        if (!error.response) {
+          this.errorMessage = "Network error. Please check your connection.";
+        } else if (error.response.status === 401) {
+          this.errorMessage = "Invalid username or password.";
+        } else {
+          this.errorMessage = (error.response && error.response.data && error.response.data.message) || "An error occurred during login.";
+        }
+        //stop loading spinner
+      } finally {
+        this.loading = false;
+      }
     }
-  } catch (error) {
-    if (!error.response) {
-      this.errorMessage = "Network error. Please check your connection.";
-    } else if (error.response.status === 401) {
-      this.errorMessage = "Invalid username or password.";
-    } else {
-  this.errorMessage = (error.response && error.response.data && error.response.data.message) || "An error occurred during login.";
-}
-  } finally {
-    this.loading = false;
-  }
-}
   }
 };
 </script>
 
 <style scoped>
+/* import webmaster styling*/
 @import '../assets/webmaster_styles.css';
 
-.webmaster-log-container {
-  background-color: #082e75;
-  font-family: Arial, sans-serif;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
+/* styling for the login page*/
 
 .error-message {
   color: rgb(174, 38, 38);
@@ -145,7 +149,8 @@ input[type="submit"]:disabled {
   cursor: not-allowed;
 }
 
-input[type="text"], input[type="password"] {
+input[type="text"],
+input[type="password"] {
   padding: 10px;
   font-size: 16px;
   border-radius: 4px;

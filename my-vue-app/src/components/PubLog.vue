@@ -1,11 +1,13 @@
-<!-- filepath: /c:/Users/laure/Senior-Project/TestCreationVue/src/components/PubLog.vue -->
+<!--Pub Log
+  This page is where the publisher chooses logs in-->
 <template>
   <div class="theme-publisher">
-  <div class="top-banner">
-  <div class="banner-title">Publisher Login</div>
-</div>
-    <!-- This is the page where publishers log in-->
-    <div class="center large-paragraph" style ="color: #222">
+    <!-- banner contents-->
+    <div class="top-banner">
+      <div class="banner-title">Publisher Login</div>
+    </div>
+    <!-- page contents-->
+    <div class="center large-paragraph" style="color: #222">
       Please enter your publisher username and password:
       <br />
       <br />
@@ -23,7 +25,7 @@
 
       <!-- Show error message if user and password are entered incorrectly -->
       <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-      
+
       <!-- Show loading spinner if the form is submitting -->
       <div v-if="loading" class="loading-message">Logging in...</div>
     </div>
@@ -31,10 +33,12 @@
 </template>
 
 <script>
-import api from '@/api'; // <-- your custom Axios instance with token handling
+// Importing necessary libraries and components
+import api from '@/api';
 import jwtDecode from 'jwt-decode';
 
 export default {
+  //data used in the page
   data() {
     return {
       username: '',
@@ -44,7 +48,7 @@ export default {
     };
   },
   mounted() {
-    // Optional: Check if token exists and redirect if still valid
+    //Check if required token exists and redirect if still valid
     const token = localStorage.getItem('token');
     if (token) {
       try {
@@ -60,67 +64,70 @@ export default {
     }
   },
   methods: {
+    //Function to submit the username and password. 
     async submitForm() {
-  if (!this.username || !this.password) {
-    this.errorMessage = "Please enter both username and password.";
-    return;
-  }
+      //validate username and password
+      if (!this.username || !this.password) {
+        this.errorMessage = "Please enter both username and password.";
+        return;
+      }
+      // Check required lengths
+      if (this.username.trim().length < 3 || this.password.trim().length < 6) {
+        this.errorMessage = "Username must be at least 3 characters and password at least 6 characters.";
+        return;
+      }
 
-  if (this.username.trim().length < 3 || this.password.trim().length < 6) {
-    this.errorMessage = "Username must be at least 3 characters and password at least 6 characters.";
-    return;
-  }
+      //start loading spinner and clear error message
+      this.loading = true;
+      this.errorMessage = "";
 
-  this.loading = true;
-  this.errorMessage = "";
+      // try to log in
+      try {
+        const res = await api.post('/auth/login', {
+          username: this.username.toLowerCase(),
+          password: this.password
+        });
 
-  try {
-    const res = await api.post('/auth/login', {
-      username: this.username.toLowerCase(),
-      password: this.password
-    });
+        const { token, user_id, role } = res.data;
 
-    const { token, user_id, role } = res.data;
+        //gets user information
+        // Store token and identity in localStorage
+        localStorage.setItem('token', token);
+        localStorage.setItem('user_id', user_id);
+        localStorage.setItem('role', role);
 
-    // Store token and identity in localStorage
-    localStorage.setItem('token', token);
-    localStorage.setItem('user_id', user_id);
-    localStorage.setItem('role', role);
-
-    // Redirect based on role
-    if (role === 'publisher') {
-      this.$router.push('/PubHome');
-    } else {
-      this.errorMessage = "Only publishers can log in here.";
-      localStorage.clear(); // Clear stored data for non-teachers
+        // Redirect based on role
+        //if publisher, redirect to publisher home page
+        if (role === 'publisher') {
+          this.$router.push('/PubHome');
+        } else {
+          // if teacher or webmaser, show error message
+          this.errorMessage = "Only publishers can log in here.";
+          localStorage.clear(); // Clear stored data for non-teachers
+        }
+        //error handling
+      } catch (error) {
+        if (!error.response) {
+          this.errorMessage = "Network error. Please check your connection.";
+        } else if (error.response.status === 401) {
+          this.errorMessage = "Invalid username or password.";
+        } else {
+          this.errorMessage = (error.response && error.response.data && error.response.data.message) || "An error occurred during login.";
+        }
+        //stop loading spinner
+      } finally {
+        this.loading = false;
+      }
     }
-  } catch (error) {
-    if (!error.response) {
-      this.errorMessage = "Network error. Please check your connection.";
-    } else if (error.response.status === 401) {
-      this.errorMessage = "Invalid username or password.";
-    } else {
-  this.errorMessage = (error.response && error.response.data && error.response.data.message) || "An error occurred during login.";
-}
-  } finally {
-    this.loading = false;
-  }
-}
   }
 };
 </script>
 
 
 <style scoped>
+/* import styling */
 @import '../assets/publisher_styles.css';
 
-.pub-log-container {
-  background-color: #17552a;
-  font-family: Arial, sans-serif;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
 
 /* Larger submit button */
 input[type="submit"] {
@@ -129,6 +136,8 @@ input[type="submit"] {
   font-size: 20px;
   padding: 10px 20px;
 }
+
+/* error message color*/
 .error-message {
   color: rgb(174, 38, 38);
   margin-top: 10px;
@@ -139,6 +148,7 @@ input[type="submit"] {
   margin-top: 10px;
 }
 
+/*page styling*/
 input[type="submit"] {
   background-color: rgb(84, 178, 150);
   color: black;
@@ -153,7 +163,8 @@ input[type="submit"]:disabled {
   cursor: not-allowed;
 }
 
-input[type="text"], input[type="password"] {
+input[type="text"],
+input[type="password"] {
   padding: 10px;
   font-size: 16px;
   border-radius: 4px;

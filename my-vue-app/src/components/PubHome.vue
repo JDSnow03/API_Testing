@@ -1,47 +1,54 @@
-<!-- filepath: /c:/Users/laure/Senior-Project/TestCreationVue/src/components/PubHome.vue -->
+<!--Pub Home
+  This page is where the publisher chooses what textbook to work in-->
 <template>
- <div class="theme-publisher">
-  <div class="top-banner">
-  <div class="banner-title">Textbook Selection</div>
+  <!--Banner contents-->
+  <div class="theme-publisher">
+    <div class="top-banner">
+      <div class="banner-title">Textbook Selection</div>
 
-  <div class="banner-actions">
-    <router-link to="/" class="p_banner-btn">Log Out</router-link>
-  </div>
-</div>
-    <div class="center large-paragraph" style = "color:#222">
+      <div class="banner-actions">
+        <router-link to="/" class="p_banner-btn">Log Out</router-link>
+      </div>
+    </div>
+    <!-- page contents-->
+    <div class="center large-paragraph" style="color:#222">
       <div class="page-wrapper">
 
-      Please select or add a textbook:
+        Please select or add a textbook:
 
-      <div class="button-row">
-      <!--selecting a course will be a drop down menu with all previous courses-->
-      <!--If else that ensures there are courses to select from-->
-      <div class="p_dropdown" v-if="textbooks.length">
-        <button class="p_dropbtn">Select Textbook</button>
-        <div class="p_dropdown-content">
-          <router-link v-for="textbook in textbooks" :key="textbook.id"
-          :to="{ path: 'PubQuestions', query: { title: textbook.title, textbook_id: textbook.id } }">
-            {{ textbook.title }}
+        <div class="button-row">
+          <!--selecting a textbook will be a drop down menu with all previous books-->
+          <!--If else that ensures there are textbooks to select from-->
+          <div class="p_dropdown" v-if="textbooks.length">
+            <button class="p_dropbtn">Select Textbook</button>
+            <div class="p_dropdown-content">
+              <!-- link will take user to correct questions page when textbook is selectd-->
+              <router-link v-for="textbook in textbooks" :key="textbook.id"
+                :to="{ path: 'PubQuestions', query: { title: textbook.title, textbook_id: textbook.id } }">
+                {{ textbook.title }}
+              </router-link>
+            </div>
+          </div>
+          <!--if there are no textbooks-->
+          <div v-else>
+            No courses available.
+          </div>
+          <!--creating a new textbook will take user to new page-->
+          <router-link to="PubNewBook">
+            <button class="p_button">Add New Textbook</button>
           </router-link>
+          <br>
         </div>
       </div>
-      <div v-else>
-        No courses available.
-      </div>
-      <!--creating a new course will take user to new page-->
-      <router-link to="PubNewBook">
-        <button class="p_button">Add New Textbook</button>
-      </router-link>
-      <br>
     </div>
-  </div>
-  </div>
   </div>
 </template>
 
 <script>
-import api from '@/api'; // <-- your custom Axios instance with token handling
+// Importing necessary modules and components
+import api from '@/api';
 import jwtDecode from 'jwt-decode';
+
 export default {
   name: 'PublisherHome',
   data() {
@@ -54,9 +61,10 @@ export default {
     this.fetchTextbooks();
   },
   methods: {
+    //This function fetches the textbooks from the database
     async fetchTextbooks() {
       try {
-        console.log('Fetching textbooks...'); // Debugging
+        console.log('Fetching textbooks...'); // Debugging log
 
         const response = await api.get('/textbooks', {
           headers: {
@@ -64,13 +72,16 @@ export default {
           }
         });
 
-        console.log('Textbooks fetched:', response.data); // Debugging
+        console.log('Textbooks fetched:', response.data); // Debugging log that shows the textbooks
 
         if (response.data && response.data.textbooks) {
+          //stores data if properly fetched
           this.textbooks = response.data.textbooks;
         } else {
+          // error message if improperly fetched
           this.error = 'Failed to fetch textbooks data.';
         }
+        //error handling
       } catch (error) {
         console.error('Error fetching textbooks:', error);
 
@@ -87,16 +98,10 @@ export default {
 </script>
 
 <style scoped>
+/* import publisher styles */
 @import '../assets/publisher_styles.css';
 
-.pub-home-container {
-  background-color: #17552a;
-  font-family: Arial, sans-serif;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
+/* Dropdown styling*/
 .dropbtn {
   background-color: rgb(48, 191, 223);
   color: black;
