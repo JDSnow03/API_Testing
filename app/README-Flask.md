@@ -4,7 +4,17 @@
 
 ## Project Overview
 
-**Print-A-Test** is a full-stack web application built for teachers and education professionals to streamline the creation of printable tests. It supports manual question creation and Canvas QTI file imports, complete with answer key generation, attachment handling, and custom templates. The platform is role-based and includes permission control for **Teachers**, **Publishers**, and **Webmasters**.
+This is the Flask-based backend API for Print-A-Test. It supports Teachers, Publishers, and Webmasters 
+by providing secure API endpoints for user authentication, course and test management, QTI file imports, 
+attachment handling, feedback tracking, and system-level operations.
+
+## Authentication & Roles
+
+Supabase Auth manages user registration and JWT-based login. Three roles are supported:
+
+- **Teacher**: Create private/public questions, build tests from templates, view/leave feedback, and access published material.
+- **Publisher**: Create private/public questions, contribute to the public question pool, and view/leave feedback.
+- **Webmaster**: Full access to user, question, textbook, and course database tables for downloading and review.
 
 ---
 
@@ -35,17 +45,6 @@ API-Testing/
 │   └── qti_parser.py              # Helper functions for parsing QTI files
 
 ---
-
-## Authentication & Roles
-
-Supabase Auth manages user registration and JWT-based login. Three roles are supported:
-
-- **Teacher**: Create private/public questions, build tests from templates, view/leave feedback, and access published material.
-- **Publisher**: Create private/public questions, contribute to the public question pool, and view/leave feedback.
-- **Webmaster**: Full access to system-level operations, including downloading test archives and viewing analytics.
-
----
-
 
 ## Installation Guide
 
