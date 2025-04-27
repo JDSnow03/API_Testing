@@ -79,6 +79,7 @@
 
 
     <ul>
+      <!-- Display questions in a block format -->
       <div v-for="(question, index) in questions" :key="index"
         :class="['question-box', { selected: selectedQuestionId === question.id }]"
         @click="toggleQuestionSelection(question.id)">
@@ -100,9 +101,7 @@
             }}</li>
           </ul>
         </div>
-        <!-- <div v-if="question.type === 'Short Answer'">
-          <strong>Answer:</strong> {{ question.answer || 'Not provided' }}
-        </div> -->
+
         <div v-if="question.type === 'Fill in the Blank'">
           <strong>Correct Answer(s):</strong>
           <ul>
@@ -170,7 +169,7 @@
       </div>
     </div>
 
-    <!-- Popup Overlay -->
+    <!-- Popup to Edit Questions Overlay -->
     <div class="popup-overlay" v-show="showForm">
       <div class="form-popup-modal">
         <form class="form-container" @submit.prevent="handleQuestionSave">
@@ -231,11 +230,6 @@
             <label><b>Correct Answer</b></label>
             <input type="text" v-model="answer" />
           </div>
-
-          <!-- <div v-if="selectedQuestionType === 'Short Answer'">
-            <label><b>Answer</b></label>
-            <input type="text" v-model="answer" />
-          </div> -->
 
           <div v-if="selectedQuestionType === 'Essay'"></div>
 
@@ -397,7 +391,7 @@ export default {
       }
     },
 
-
+    // function to fetch testbanks from the database and route to the selected testbank
     async loadTestbanks() {
       try {
         const response = await api.get(`/testbanks/teacher?course_id=${this.courseId}`, {
@@ -430,77 +424,77 @@ export default {
 
     //function to fetch questions from the database based on selected question type
     async fetchQuestions(type) {
-  this.selectedQuestionType = type;
-  try {
-    const response = await api.get(`/questions`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      },
-      params: {
-        course_id: this.$route.query.courseId
+      this.selectedQuestionType = type;
+      try {
+        const response = await api.get(`/questions`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          },
+          params: {
+            course_id: this.$route.query.courseId
+          }
+        });
+
+        const allQuestions = response.data.questions;
+
+        // Explicitly filter by type
+        const filtered = allQuestions.filter(q => q.type === type);
+
+        this.questions = filtered.map((question) => {
+          const base = {
+            text: question.question_text,
+            type: question.type,
+            points: question.default_points,
+            id: question.id,
+            instructions: question.grading_instructions || '',
+            time: question.est_time,
+            chapter: question.chapter_number,
+            section: question.section_number,
+            image_url: question.attachment && question.attachment.url ? question.attachment.url : ''
+          };
+
+          switch (question.type) {
+            case 'True/False':
+              return { ...base, answer: question.true_false_answer };
+            case 'Multiple Choice':
+              return {
+                ...base,
+                correctOption: question.correct_option || null,
+                incorrectOptions: question.incorrect_options || []
+              };
+            case 'Matching':
+              return {
+                ...base,
+                pairs: (question.matches || []).map(pair => ({
+                  match_id: pair.match_id,
+                  term: pair.prompt_text,
+                  definition: pair.match_text
+                }))
+              };
+            case 'Fill in the Blank':
+              return {
+                ...base,
+                blanks: question.blanks || []
+              };
+            case 'Short Answer':
+              return {
+                ...base,
+                answer: question.answer || ''
+              };
+            case 'Essay':
+              return {
+                ...base
+              };
+            default:
+              return base;
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+        this.questions = [];
       }
-    });
-
-    const allQuestions = response.data.questions;
-
-    // ✅ Explicitly filter by type
-    const filtered = allQuestions.filter(q => q.type === type);
-
-    this.questions = filtered.map((question) => {
-      const base = {
-        text: question.question_text,
-        type: question.type,
-        points: question.default_points,
-        id: question.id,
-        instructions: question.grading_instructions || '',
-        time: question.est_time,
-        chapter: question.chapter_number,
-        section: question.section_number,
-        image_url: question.attachment && question.attachment.url ? question.attachment.url : ''
-      };
-
-      switch (question.type) {
-        case 'True/False':
-          return { ...base, answer: question.true_false_answer };
-        case 'Multiple Choice':
-          return {
-            ...base,
-            correctOption: question.correct_option || null,
-            incorrectOptions: question.incorrect_options || []
-          };
-        case 'Matching':
-          return {
-            ...base,
-            pairs: (question.matches || []).map(pair => ({
-              match_id: pair.match_id,
-              term: pair.prompt_text,
-              definition: pair.match_text
-            }))
-          };
-        case 'Fill in the Blank':
-          return {
-            ...base,
-            blanks: question.blanks || []
-          };
-        case 'Short Answer':
-          return {
-            ...base,
-            answer: question.answer || ''
-          };
-        case 'Essay':
-          return {
-            ...base
-          };
-        default:
-          return base;
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching questions:', error);
-    this.questions = [];
-  }
-}
-,
+    }
+    ,
     //function to display questions fetched
     displayQuestionType(type) {
       this.selectedQuestionType = `Selected Question Type: ${type}`;
@@ -509,6 +503,7 @@ export default {
       console.log('Query Parameters:', this.$route.query);
     },
 
+    // functions to handle file upload and import for QTI files
     importTest() {
       document.getElementById('fileInput').click();
     },
@@ -559,6 +554,8 @@ export default {
 
       }
     },
+
+    // function to save the question to the database
     async handleQuestionSave() {
       try {
         let postData;
@@ -602,6 +599,7 @@ export default {
           }
         }
 
+        // Check if the image is selected and handle it accordingly
         if (this.image) {
           postData = new FormData();
           postData.append('file', this.image);
@@ -648,6 +646,7 @@ export default {
             }
           };
         } else {
+          // If no image is selected, use the common fields directly
           postData = { ...commonFields };
 
           switch (this.selectedQuestionType) {
@@ -689,6 +688,7 @@ export default {
           };
         }
 
+        // Send the request to create or update the question
         if (isEditing) {
           await api.patch(`/questions/${this.editingQuestionId}`, postData, config);
         } else {
@@ -707,10 +707,12 @@ export default {
       }
     },
 
+    //function to select question type from the dropdown menu
     selectQuestionType(type) {
       this.selectedQuestionType = `Selected Question Type: ${type}`;
       this.fetchQuestions(type);
     },
+    //form functions to show and hide the question form
     edit() {
       this.resetForm(); // Clear old data
       this.showForm = true;
@@ -724,11 +726,11 @@ export default {
     removePair(index) {
       this.matchingPairs.splice(index, 1);
     },
-
+    //function to handle image upload on question creation
     handleImageUpload(event) {
       const file = event.target.files[0];
       if (file) {
-        this.image = file;  // ✅ This was the missing link
+        this.image = file;
 
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -756,7 +758,7 @@ export default {
       this.imagePreview = '';
 
     },
-
+    //function to edit questions
     async editQuestion(question) {
       try {
         const res = await api.get(`/questions/${question.id}/used_in`, {

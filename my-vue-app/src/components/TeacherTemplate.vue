@@ -13,7 +13,7 @@
       <button class="t_button" @click="exportWarning = true">Export Test to Document</button>
     </div>
 
-
+    <!-- Notes for user -->
     <p class="export-note">
       <strong>Note:</strong> Anything displayed in <span class="green-text">green</span> will not appear on the student
       test but will be included in the test key. <br />
@@ -153,7 +153,7 @@
 
 
 
-
+    <!-- Simplified Question List -->
     <div class="question-list-container">
       <draggable v-model="questions" item-key="id" class="drag-list" handle=".drag-handle" @update="saveOrder">
         <template #header></template>
@@ -193,7 +193,6 @@
               <div class="question-type-label">{{ element.type }}</div>
             </div>
 
-
             <!-- Matching Question boxes-->
             <div v-else-if="element.type === 'Matching'">
               <div class="matching-container">
@@ -225,8 +224,6 @@
               </div>
             </div>
 
-
-
             <!-- True/False -->
             <div v-else-if="element.type === 'True/False'">
               <p><strong>Answer:</strong> __________________________</p>
@@ -235,8 +232,6 @@
               </p>
               <div class="question-type-label">{{ element.type }}</div>
             </div>
-
-
 
             <!-- Short Answer or Essay -->
             <div v-else-if="element.type === 'Short Answer' || element.type === 'Essay'">
@@ -256,11 +251,8 @@
               <button @click.stop="editQuestion(element)">Edit</button>
               <button @click.stop="removeFromTest(element.id)">Remove from Test</button>
             </div>
-
-
           </div>
         </template>
-
         <template #footer></template>
       </draggable>
 
@@ -270,9 +262,9 @@
 </template>
 
 <script>
-import draggable from 'vuedraggable';
-import api from '@/api'; // consistent with your other components
-import { saveAs } from 'file-saver';
+import draggable from 'vuedraggable'; // Import the draggable component for question reordering
+import api from '@/api';
+import { saveAs } from 'file-saver'; // Import FileSaver.js for file download functionality
 
 export default {
   components: { draggable },
@@ -309,7 +301,6 @@ export default {
         est_time: '',
         grading_instructions: ''
       }
-
     };
   },
 
@@ -321,7 +312,7 @@ export default {
     window.removeEventListener('beforeunload', this.confirmExit);
   },
 
-  //this looks for the order of questions changing and updates storage
+  //look for the order of questions changing and updates storage
   watch: {
     questions: {
       deep: true,
@@ -332,6 +323,7 @@ export default {
     }
   },
   computed: {
+    //compute total test time and points==========================================
     totalEstimatedTime() {
       return this.questions.reduce((sum, q) => {
         const time = parseInt(q.est_time, 10);
@@ -387,6 +379,8 @@ export default {
         alert('Could not verify question status.');
       }
     },
+
+    // function for copying the question if it is blocked from editing
     async createCopyInstead() {
       try {
         // Step 1: Copy the question to the current course
@@ -408,7 +402,7 @@ export default {
           }
         });
 
-        // ✅ Remove old question ID from localStorage to keep it out on reload
+        // Remove old question ID from localStorage to keep it out on reload
         const orderKey = `questionOrder_${this.testBankId}`;
         const savedOrder = JSON.parse(localStorage.getItem(orderKey) || "[]");
         const updatedOrder = savedOrder.filter(id => id !== this.editingQuestionId);
@@ -461,11 +455,12 @@ export default {
         });
 
       } catch (err) {
-        console.error('❌ Failed to create or edit copy:', err);
+        console.error('Failed to create or edit copy:', err);
         alert('An error occurred while replacing the uneditable question.');
       }
     },
 
+    // Save the edited question back to the backend
     async saveEditedQuestion() {
       try {
         const payload = {
@@ -511,17 +506,15 @@ export default {
           }
         });
 
-        alert("✅ Question updated!");
+        alert("Question updated!");
         this.showEditForm = false;
         await this.fetchQuestions(); // Refresh questions from backend
 
       } catch (err) {
-        console.error("❌ Failed to update question:", err);
+        console.error("Failed to update question:", err);
         alert("Could not update question.");
       }
     },
-
-
 
     //methods for exporting, publishing, and going back to the draft pool
     // finalize the document export
@@ -544,20 +537,20 @@ export default {
           }
         });
 
-        console.log("✅ Answer key uploaded:", response.data);
+        console.log("Answer key uploaded:", response.data);
       } catch (err) {
-        console.error("❌ Failed to upload answer key:", err);
+        console.error("Failed to upload answer key:", err);
         alert("The answer key could not be saved to the backend.");
       }
     },
 
-    //publish the test
+    //publish the test ---this feauture moved to homepage
     async publishTest() {
       try {
         const testId = localStorage.getItem('finalizedTestId');
 
         if (!testId) {
-          alert("❌ No finalized test found. Please export the test first.");
+          alert("No finalized test found. Please export the test first.");
           return;
         }
 
@@ -568,16 +561,16 @@ export default {
           }
         });
 
-        alert("✅ Test successfully published!");
+        alert("Test successfully published!");
         localStorage.removeItem('finalizedTestId');
 
       } catch (err) {
-        console.error("❌ Failed to publish test:", (err.response && err.response.data) || err.message);
+        console.error("Failed to publish test:", (err.response && err.response.data) || err.message);
         alert("An error occurred while publishing. Check the console.");
       }
     },
 
-
+    //export the test to a word document
     async finalizeTestBeforeExport() {
       try {
         const selectedTemplate = this.testOptions.selectedTemplate || "All Questions";
@@ -591,12 +584,12 @@ export default {
           type: selectedTemplate
         };
 
-        // 🔑 If it's not "All Questions", provide question_ids
+        // If it's not "All Questions", provide question_ids
         if (selectedTemplate !== "All Questions") {
           finalizePayload.question_ids = this.questions.map(q => q.id);
         }
 
-        console.log("🟡 Finalizing test with payload:", finalizePayload);
+        console.log("Finalizing test with payload:", finalizePayload);
 
         const response = await api.post('/tests/finalize', finalizePayload, {
           headers: {
@@ -607,7 +600,7 @@ export default {
         if (response.status === 201) {
           const testId = response.data.test_id;
 
-          //this needs to be debugged
+          //this needs to be debugged -> save the resource image to the backend as a separate file
           // // Upload graphic if present
           // if (this.testOptions.graphicPreview) {
           //   const imageFile = this.dataUrlToFile(this.testOptions.graphicPreview, "resource_image.png");
@@ -631,7 +624,7 @@ export default {
         }
 
       } catch (err) {
-        console.error("❌ Finalize error:", (err.response && err.response.data) || err.message);
+        console.error("Finalize error:", (err.response && err.response.data) || err.message);
         alert("Failed to finalize test. See console for details.");
         throw err;
       }
@@ -650,39 +643,42 @@ export default {
       return new File([u8arr], filename, { type: mime });
     },
 
-
+    //export the finalized test to a word document confirmation
     async confirmExport() {
       this.exportWarning = false;
       try {
         const finalizedMeta = await this.finalizeTestBeforeExport();
         const testId = finalizedMeta.testId;
 
-        // ✅ Save to localStorage or Vue data
-        localStorage.setItem('finalizedTestId', testId); // OR use: this.finalizedTestId = testId;
+        // Save to localStorage or Vue data
+        localStorage.setItem('finalizedTestId', testId);
 
         await this.exportToWord(finalizedMeta);
       } catch (err) {
         console.error("Export canceled due to finalize error");
       }
     },
+
+    //confirm the publish test action -- this feature moved to homepage
     confirmPublish() {
       this.publishWarning = false;
-      this.publishTest(); // call your existing publish logic
+      this.publishTest();
     },
 
+    //confirm the exit action of the page
     confirmExit(e) {
       if (this.hasUnsavedChanges) {
         e.preventDefault();
-        e.returnValue = ''; // For modern browsers to trigger prompt
+        e.returnValue = '';
       }
     },
 
+
+    //function to go back to draft pool
     confirmBack() {
       this.showBackWarning = false;
       this.goBackTB();
     },
-
-    //function to go back to draft pool
     goBackTB() {
       this.$router.push({
         path: '/TeacherViewTB',
@@ -704,7 +700,7 @@ export default {
         this.questions = this.questions.filter(q => q.id !== questionId);
         this.selectedQuestionId = null;
 
-        // ✅ Update localStorage to exclude removed ID
+        // Update localStorage to exclude removed ID
         const orderKey = `questionOrder_${this.testBankId}`;
         const savedOrder = JSON.parse(localStorage.getItem(orderKey) || "[]");
         const updatedOrder = savedOrder.filter(id => id !== questionId);
@@ -762,22 +758,19 @@ export default {
           ...q,
           grading_instructions: q.grading_instructions || ''
         }));
-        console.log("🟢 Loaded question data:", response.data.questions);
+        console.log("Loaded question data:", response.data.questions);
 
 
 
-        // Clear any cached memoized data like _shuffledAnswers
+        // Clear any cached memoized data
         this.questions.forEach(q => {
           if (q._shuffledAnswers) delete q._shuffledAnswers;
         });
 
       } catch (error) {
-        console.error("❌ Failed to fetch questions:", error);
+        console.error("Failed to fetch questions:", error);
       }
     },
-
-
-
 
     //save order of questions
     saveOrder() {
@@ -791,7 +784,7 @@ export default {
         ...opt, is_correct: !!opt.is_correct
       }));
 
-      // Fisher-Yates shuffle
+      // Fisher-Yates shuffle algorithm
       for (let i = options.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [options[i], options[j]] = [options[j], options[i]];
@@ -800,6 +793,7 @@ export default {
       return options;
     },
 
+    //shuffle the array of answers
     shuffleArray(arr) {
       const copy = [...arr];
       for (let i = copy.length - 1; i > 0; i--) {
@@ -809,6 +803,7 @@ export default {
       return copy;
     },
 
+    //shuffle blanks answers
     getShuffledBlanks(question) {
       return this.shuffleArray(question.blanks || []);
     },
@@ -846,7 +841,7 @@ export default {
         .join(', ');
     },
 
-    //export the questions to a document
+    //FUNCTIONS FOR EXPORTING THE TEST TO A WORD DOCUMENT===============================
     async exportToWord(finalizedMeta) {
       const totalPoints = this.questions.reduce((sum, q) => {
         const pts = parseFloat(q.default_points);
@@ -944,7 +939,7 @@ export default {
 
         for (let index = 0; index < this.questions.length; index++) {
           const q = this.questions[index];
-          // ✅ Fetch and insert question attachment image
+          // Fetch and insert question attachment image
           if (q.attachment && q.attachment.url) {
             try {
               const imageResponse = await fetch(q.attachment.url);
@@ -966,7 +961,7 @@ export default {
                 })
               );
             } catch (err) {
-              console.warn(`⚠ Failed to fetch image for question ${index + 1}:`, err);
+              console.warn(`Failed to fetch image for question ${index + 1}:`, err);
             }
           };
 
@@ -1014,7 +1009,7 @@ export default {
                     children: [
                       new Paragraph({
                         text: prompt,
-                        spacing: { after: 150 } // extra spacing below
+                        spacing: { after: 150 }
                       })
                     ],
                     margins: { top: 100, bottom: 100 }
@@ -1048,8 +1043,6 @@ export default {
 
             content.push(new Paragraph({ text: " ", spacing: { after: 300 } }));
           }
-
-
 
           content.push(new Paragraph({ text: " ", spacing: { after: 300 } }));
         };
@@ -1103,10 +1096,9 @@ export default {
 
         return content;
       };
-      // Helper to convert base64 string to ArrayBuffer
-      // Utility to convert base64 to Uint8Array (what docx expects)
+      // Helper to convert base64 string to ArrayBuffer --might be needed for image processing debugging
       const base64ToUint8Array = (base64) => {
-        const base64Data = base64.split(',')[1]; // remove the data:image/*;base64, part
+        const base64Data = base64.split(',')[1];
         const binaryString = window.atob(base64Data);
         const len = binaryString.length;
         const bytes = new Uint8Array(len);
@@ -1150,8 +1142,8 @@ export default {
               })
             );
           } catch (err) {
-            console.error("⚠ Failed to load image for resource page:", err);
-            resourceSection.push(new Paragraph("⚠ Could not load the uploaded image."));
+            console.error("Failed to load image for resource page:", err);
+            resourceSection.push(new Paragraph("Could not load the uploaded image."));
           }
         }
 
@@ -1177,7 +1169,7 @@ export default {
             document: {
               run: {
                 font: "Arial",
-                size: 24  // 12pt (24 half-points)
+                size: 24
               }
             }
           }
@@ -1194,7 +1186,7 @@ export default {
             document: {
               run: {
                 font: "Arial",
-                size: 24  // 12pt (24 half-points)
+                size: 24
               }
             }
           }
@@ -1228,7 +1220,7 @@ export default {
         await this.uploadAnswerKey(testId, keyFile);
 
       } catch (err) {
-        console.error("❌ Upload failed:", err);
+        console.error("Upload failed:", err);
         alert("Failed to upload test or answer key.");
       }
 

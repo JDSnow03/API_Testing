@@ -20,12 +20,7 @@
       <div class="button-row">
         <!-- Edit Test Bank Info Button -->
         <button class="t_button" @click="showEditForm = true">Edit Draft Pool Info</button>
-
-
-
-
         <button class="t_button" @click="showCreateTestWarning = true">Create New Test</button>
-
 
         <br>
       </div>
@@ -93,7 +88,6 @@
                 Add a cover page
               </label>
 
-
               <label><strong>Select Question Types for Your Test:</strong></label>
               <div class="checkbox-group">
                 <label>
@@ -126,7 +120,6 @@
                 </label>
               </div>
 
-
               <label><strong>Embedded Graphic:</strong></label>
               <input type="file" accept="image/*" @change="handleGraphicUpload" />
               <div v-if="testOptions.graphicPreview" style="margin-top: 10px;">
@@ -135,16 +128,12 @@
                   style="max-width: 100%; max-height: 200px; border: 1px solid #ccc;" />
               </div>
 
-
-
               <button type="submit" class="btn">Yes, Continue</button>
               <button type="button" class="btn cancel" @click="showCreateTestWarning = false">Cancel</button>
             </form>
           </div>
         </div>
       </div>
-
-
 
 
       <!--Test bank questions will be generated here-->
@@ -256,6 +245,7 @@ export default {
     };
   },
   computed: {
+    // Computed properties to display chapter and section at top of the page
     displayChapter() {
       return this.editForm.chapter || this.$route.query.chapter || '';
     },
@@ -268,6 +258,7 @@ export default {
     this.initialize();
   },
   methods: {
+    // Functions to handle question removal
     promptRemoveQuestion(questionId) {
       this.questionIdToDelete = questionId;
       this.showDeleteConfirm = true;
@@ -291,9 +282,7 @@ export default {
       }
     },
 
-
-
-
+    // Function to fetch questions from the test bank
     async fetchQuestions() {
       if (!this.testBankId) return;
       try {
@@ -316,6 +305,7 @@ export default {
       this.selectedQuestionId = this.selectedQuestionId === questionId ? null : questionId;
     },
 
+    // Function to remove a question from the test bank
     async removeQuestionFromTestBank(questionId) {
       if (!confirm('Are you sure you want to remove this question from the test bank?')) return;
 
@@ -331,6 +321,7 @@ export default {
       }
     },
 
+    // Function to update the test bank information
     async updateTestBank() {
       await api.put(`/testbanks/teacher/${this.testBankId}`, {
         name: this.editForm.name,
@@ -350,6 +341,7 @@ export default {
 
     },
 
+    // Function to handle webpage initialization
     async initialize() {
       if (!this.testBankId) {
         console.warn('No testBankId provided — cannot load questions.');
@@ -371,6 +363,7 @@ export default {
       reader.readAsDataURL(file);
     },
 
+    // Function to handle the creation of a new test and redirect to the template page
     goToCreateTest() {
       const payload = {
         testName: this.testOptions.testName,
@@ -388,7 +381,7 @@ export default {
           courseId: this.courseId,
           courseTitle: this.courseTitle,
           testBankId: this.testBankId,
-          testBankName: this.testBankName, 
+          testBankName: this.testBankName,
           selectedTypes: JSON.stringify(this.testOptions.selectedTypes) // Pass as stringified array
         }
       });
@@ -412,9 +405,7 @@ export default {
 
 .question-box {
   background-color: #ffffff;
-  /* or a soft color */
   color: #000000;
-  /* black text */
   padding: 16px;
   margin-bottom: 16px;
   border-radius: 8px;
@@ -425,7 +416,6 @@ export default {
   text-align: left;
 }
 
-/* Ensure popup form labels are left-aligned */
 .form-container label {
   text-align: left;
   display: block;
@@ -444,7 +434,7 @@ export default {
 .checkbox-group {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* left-align the group */
+  align-items: flex-start;
   margin-bottom: 10px;
 }
 </style>

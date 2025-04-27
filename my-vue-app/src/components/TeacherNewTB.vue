@@ -49,6 +49,7 @@ export default {
     };
   },
   methods: {
+    // Method to save the test bank and redirect to the question creation page
     async saveTestBank() {
       if (this.bankName && this.bankChapter && this.bankSection && this.courseId) {
         const testBankData = {
