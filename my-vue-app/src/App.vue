@@ -1,7 +1,6 @@
 
 <template>
   <div id="app">
-    <!-- This is where the route's component will be displayed -->
     <router-view></router-view>
   </div>
 </template>
@@ -11,14 +10,14 @@ export default {
   name: 'App',
   name: 'App',
   mounted() {
-    document.title = "Print-A-Test"; // Change this to your desired app name
+    document.title = "Print-A-Test"; 
   }
 };
 </script>
 <style>
 html, body {
-  margin: 0; /* Remove default margin */
-  padding: 0; /* Remove default padding */
+  margin: 0; 
+  padding: 0; 
   
 }
 
