@@ -79,13 +79,13 @@ def parse_qti_file_patched(manifest_path: str):
             "source": "canvas_qti"
         }
         
-        # 🔍 Check for image attachments
+        # Check for image attachments
         matimage = item.find(".//qti:matimage", qti_ns)
         if matimage is not None:
-            image_path = matimage.attrib.get("uri")  # e.g., "quiz_media/image1.png"
+            image_path = matimage.attrib.get("uri")  
             question_data["attachment_file"] = image_path
 
-        # 🧼 Also check inside mattext for embedded <img> tags (optional/fallback)
+        # checking inside mattext for embedded <img> tags 
         mattext_elem = item.find(".//qti:mattext", qti_ns)
         if  mattext_elem is not None:
             decoded_html = unescape(mattext_elem.text or "")
@@ -144,6 +144,7 @@ def parse_qti_file_patched(manifest_path: str):
             question_data["matches"] = matches
 
         elif question_type == "Fill in the Blank":
+            # When there is a fill in the blank question with 2 fill in the blanks then it removes the '[]' from the question text and adds a ____
             question_data["question_text"] = replace_blanks(question_text_clean)
             blanks = []
             for resp in item.findall(".//qti:response_lid", qti_ns):
@@ -172,41 +173,3 @@ def parse_qti_file_patched(manifest_path: str):
         "questions": questions
     }
 
-""""
-# Run the patched parser
-# Gets the full path to your current working directory (your project root)
-# Step 1: Build the path to imsmanifest.xml
-#base_path = os.getcwd()
-#manifest_path = os.path.join(base_path, "qti_testing", "imsmanifest.xml")
-manifest_path = '/Users/rodjr.stuckey/Documents/GitHub/Senior-Project/Backend/API/qti_testing/group-4-project-quiz-export-3/imsmanifest.xml'
-# Step 2: Parse the file
-parsed = parse_qti_file_patched(manifest_path)
-
-# Step 3: Print the summary
-print("Quiz Title:", parsed["quiz_title"])
-print("Time Limit:", parsed["time_limit"])
-print("Total Questions:", len(parsed["questions"]))
-print("=" * 40)
-
-# Step 4: Print each question
-for i, q in enumerate(parsed["questions"], start=1):
-    print(f"Question {i}:")
-    print("  Type:", q["type"])
-    print("  Text:", q["question_text"])
-    print("  Points:", q["default_points"])
-    if "choices" in q:
-        print("  Choices:")
-        for choice in q["choices"]:
-            print(f"    - {choice['text']} (Correct: {choice['is_correct']})")
-    if "true_false_answer" in q:
-        print("  Answer:", "True" if q["true_false_answer"] else "False")
-    if "matches" in q:
-        print("  Matches:")
-        for m in q["matches"]:
-            print(f"    - {m['prompt']} -> {m['match']} (Correct: {m['is_correct']})")
-    if "blanks" in q:
-        print("  Blanks:")
-        for b in q["blanks"]:
-            print(f"    - Prompt: {b['prompt']}, Answer: {b['answer']} (Correct: {b['is_correct']})")
-    print("-" * 40)
-"""

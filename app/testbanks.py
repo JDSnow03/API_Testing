@@ -220,7 +220,7 @@ def get_questions_in_testbank(testbank_id):
         qid = q['id']
         qtype = q['type']
 
-        # 🔗 If the question has an attachment, generate signed URL
+        #If the question has an attachment, generate signed URL
         if q.get('attachment_id'):
             cur.execute("""
                 SELECT name, filepath FROM Attachments WHERE attachments_id = %s;
@@ -493,12 +493,12 @@ def get_questions_in_testbank_publihser(testbank_id):
     column_names = [desc[0] for desc in cur.description]
     questions = [dict(zip(column_names, row)) for row in cur.fetchall()]
 
-    # Enrich as before...
+    # Enrich as before
     for q in questions:
         qid = q['id']
         qtype = q['type']
 
-        # 🔗 If the question has an attachment, generate signed URL
+        # If the question has an attachment, generate signed URL
         if q.get('attachment_id'):
             cur.execute("""
                 SELECT name, filepath FROM Attachments WHERE attachments_id = %s;
@@ -567,20 +567,20 @@ def publish_testbank_and_questions(testbank_id):
     conn = Config.get_db_connection()
     cursor = conn.cursor()
 
-    # ✅ Verify the testbank is owned by the user
+    # Verify the testbank is owned by the user
     cursor.execute("SELECT owner_id FROM Test_bank WHERE testbank_id = %s;", (testbank_id,))
     result = cursor.fetchone()
     if not result or result[0] != user_id:
         return jsonify({"error": "You do not own this testbank"}), 403
 
-    # ✅ Mark the testbank as published
+    # Mark the testbank as published
     cursor.execute("""
         UPDATE Test_bank
         SET is_published = TRUE
         WHERE testbank_id = %s;
     """, (testbank_id,))
 
-    # ✅ Mark all questions in the testbank as published
+    # Mark all questions in the testbank as published
     cursor.execute("""
         UPDATE Questions
         SET is_published = TRUE
@@ -610,7 +610,7 @@ def delete_testbank(testbank_id):
     conn = Config.get_db_connection()
     cursor = conn.cursor()
 
-    # ✅ Check ownership and publication status
+    # Check ownership and publication status
     cursor.execute("""
         SELECT owner_id, is_published FROM Test_bank
         WHERE testbank_id = %s;
@@ -638,8 +638,7 @@ def delete_testbank(testbank_id):
     return jsonify({"message": "Testbank deleted successfully"}), 200
 
 
-# Removing the question from the testbank
-# A buttin or something may need to be provided to delete the question from the testbank 
+# Removing the question from the testbank 
 @testbank_bp.route('/<int:testbank_id>/questions/<int:question_id>', methods=['DELETE'])
 def remove_question_from_testbank(testbank_id, question_id):
     auth_data = authorize_request()

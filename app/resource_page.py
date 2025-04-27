@@ -18,7 +18,7 @@ def get_published_questions_for_course_textbook():
     conn = Config.get_db_connection()
     cur = conn.cursor()
 
-    # 1. Get textbook_id from course_id
+    # Get textbook_id from course_id
     cur.execute("SELECT textbook_id FROM Courses WHERE course_id = %s;", (course_id,))
     result = cur.fetchone()
     if not result or result[0] is None:
@@ -26,7 +26,7 @@ def get_published_questions_for_course_textbook():
 
     textbook_id = result[0]
 
-    # 2. Get published questions from that textbook
+    # Get published questions from that textbook
     cur.execute("""
         SELECT id, question_text, type, chapter_number, section_number
         FROM Questions
@@ -35,7 +35,7 @@ def get_published_questions_for_course_textbook():
     column_names = [desc[0] for desc in cur.description]
     questions = [dict(zip(column_names, row)) for row in cur.fetchall()]
 
-    # 3. Enrich by type (reuse your existing logic)
+    # Enrich by type 
     for q in questions:
         qid = q['id']
         qtype = q['type']
@@ -84,11 +84,11 @@ def copy_published_question_for_teacher():
     teacher_id = auth_data["user_id"]
     data = request.get_json()
 
-    print("📨 incoming data:", data)
+    print("incoming data:", data)
 
     source_question_id = data.get("question_id")
     course_id = data.get("course_id")
-    print("📌 question_id:", source_question_id, "course_id:", course_id)
+    print("question_id:", source_question_id, "course_id:", course_id)
 
     source_question_id = data.get("question_id")
     course_id = data.get("course_id")
@@ -99,7 +99,7 @@ def copy_published_question_for_teacher():
     conn = Config.get_db_connection()
     cur = conn.cursor()
 
-    # 1. Fetch original question
+    # Fetch original question
     cur.execute("""
         SELECT question_text, type, true_false_answer, default_points, est_time,
                grading_instructions, source, chapter_number, section_number, attachment_id
@@ -107,7 +107,7 @@ def copy_published_question_for_teacher():
         WHERE id = %s AND is_published = TRUE;
     """, (source_question_id,))
     original = cur.fetchone()
-    print("📦 original fetched:", original)
+    print("original fetched:", original)
 
     if not original:
         return jsonify({"error": "Published question not found"}), 404
@@ -117,7 +117,7 @@ def copy_published_question_for_teacher():
         source, chapter, section, attachment_id
     ) = original
 
-    # 2. Insert new question (no attachment yet)
+    # Insert new question 
     cur.execute("""
         INSERT INTO Questions (
             question_text, type, true_false_answer, default_points,
@@ -133,7 +133,7 @@ def copy_published_question_for_teacher():
     ))
     new_qid = cur.fetchone()[0]
 
-    # 3. If attachment exists, copy it and update the question
+    # If attachment exists, copy it and update the question
     if attachment_id:
         # Copy Attachments table row
         cur.execute("""
@@ -244,7 +244,7 @@ def get_published_questions():
         qid = q['id']
         qtype = q['type']
 
-        # 🔗 If the question has an attachment, generate signed URL
+        #If the question has an attachment, generate signed URL
         if q.get('attachment_id'):
             cur.execute("""
                 SELECT name, filepath FROM Attachments WHERE attachments_id = %s;
@@ -313,14 +313,14 @@ def get_full_published_testbanks_by_course():
     conn = Config.get_db_connection()
     cur = conn.cursor()
 
-    # Step 1: Get textbook_id for the course
+    # Get textbook_id for the course
     cur.execute("SELECT textbook_id FROM Courses WHERE course_id = %s;", (course_id,))
     result = cur.fetchone()
     if not result or result[0] is None:
         return jsonify({"error": "No textbook assigned to this course"}), 404
     textbook_id = result[0]
 
-    # Step 2: Get all published testbanks linked to that textbook
+    # Get all published testbanks linked to that textbook
     cur.execute("""
         SELECT testbank_id, name, chapter_number, section_number
         FROM Test_bank
@@ -333,7 +333,7 @@ def get_full_published_testbanks_by_course():
     for row in testbank_rows:
         testbank_id, name, chapter, section = row
 
-        # Step 3: Get questions in this testbank
+        # Get questions in this testbank
         cur.execute("""
             SELECT q.id, q.question_text, q.type, q.chapter_number, q.section_number, q.attachment_id, q.grading_instructions
             FROM test_bank_questions tbq
@@ -343,12 +343,12 @@ def get_full_published_testbanks_by_course():
         column_names = [desc[0] for desc in cur.description]
         questions = [dict(zip(column_names, qrow)) for qrow in cur.fetchall()]
 
-        # Step 4: Enrich based on type
+        # Enrich based on type
         for q in questions:
             qid = q["id"]
             qtype = q["type"]
 
-            # 🔗 If the question has an attachment, generate signed URL
+            #If the question has an attachment, generate signed URL
             if q.get('attachment_id'):
                 cur.execute("""
                     SELECT name, filepath FROM Attachments WHERE attachments_id = %s;
@@ -433,7 +433,7 @@ def copy_published_testbank_for_teacher():
     conn = Config.get_db_connection()
     cur = conn.cursor()
 
-    # 1. Fetch original testbank
+    # Fetch original testbank
     cur.execute("""
         SELECT name, textbook_id, chapter_number, section_number
         FROM test_bank
@@ -446,7 +446,7 @@ def copy_published_testbank_for_teacher():
 
     name, textbook_id, chapter, section = original
 
-    # 2. Insert new testbank for teacher
+    # Insert new testbank for teacher
     cur.execute("""
         INSERT INTO test_bank (owner_id, name, course_id, chapter_number, section_number, is_published)
         VALUES (%s, %s, %s, %s, %s, FALSE)
@@ -454,7 +454,7 @@ def copy_published_testbank_for_teacher():
     """, (teacher_id, name, course_id, chapter, section))
     new_testbank_id = cur.fetchone()[0]
 
-    # 3. Get question IDs linked to original testbank
+    # Get question IDs linked to original testbank
     cur.execute("""
         SELECT question_id FROM test_bank_questions WHERE test_bank_id = %s;
     """, (source_testbank_id,))
@@ -595,7 +595,7 @@ def get_test_file_signed_url(test_id):
         if not row or not row[0]:
             return jsonify({"error": "Test file not found or test is not published."}), 404
 
-        file_path = row[0]  # e.g., "published/3_Unit3_Final.pdf"
+        file_path = row[0]  
 
         # Generate signed URL from Supabase
         supabase = Config.get_supabase_client()
@@ -660,7 +660,7 @@ def get_test_questions(test_id):
                             "url": signed['signedURL']
                         }
                 except Exception as e:
-                    print(f"❌ Error generating signed URL for qid {q['id']}: {e}")
+                    print(f"Error generating signed URL for qid {q['id']}: {e}")
 
             # Multiple Choice
             if qtype == 'Multiple Choice':

@@ -9,7 +9,7 @@ import json
 # Create Blueprint
 question_bp = Blueprint('questions', __name__)
 
-# CREATE Question (If the user is a publisher, the question is automatically published)
+# CREATE Question 
 """When creating a question that has an attacment linked to it the attaachment must be called first and saved in the frontend using loical storage and then that attachment id is linked to the question"""
 @question_bp.route('', methods=['POST'])
 def create_question():
@@ -117,12 +117,12 @@ def create_question():
                 VALUES (%s, %s, %s);
             """, (question_id, option['option_text'], option.get('is_correct', False)))
 
-        # 🔹 Ensure options were inserted before committing
+        # Ensure options were inserted before committing
         cur.execute("SELECT COUNT(*) FROM QuestionOptions WHERE question_id = %s;", (question_id,))
         option_count = cur.fetchone()[0]
 
         if option_count < 2:
-            conn.rollback()  # Rollback if options are missing
+            conn.rollback()  
             return jsonify({"error": "Database validation failed: Not enough options inserted."}), 500
 
     
@@ -213,7 +213,7 @@ def get_questions():
         qid = q['id']
         qtype = q['type']
 
-        # 🔗 If the question has an attachment, generate signed URL
+        # If the question has an attachment, generate signed URL
         if q.get('attachment_id'):
             cur.execute("""
                 SELECT name, filepath FROM Attachments WHERE attachments_id = %s;
@@ -294,7 +294,7 @@ def update_question(question_id):
 
     question_type = question[2]
 
-    # ✅ General updates (if provided)
+    # General updates (if provided)
     fields_to_update = {
         "question_text": "question_text",
         "default_points": "default_points",
@@ -312,7 +312,7 @@ def update_question(question_id):
                 (data[field], question_id)
             )
 
-    # ✅ Type-specific updates
+    # Type-specific updates
 
     ## Short Answer
     if question_type == "Short Answer" and "instructions" in data:
@@ -408,7 +408,7 @@ def update_question(question_id):
                 if delete_id in existing_match_ids:
                     cur.execute("DELETE FROM QuestionMatches WHERE match_id = %s;", (delete_id,))
 
-    # ✅ Done: save and close
+
     conn.commit()
     cur.close()
 
@@ -460,9 +460,9 @@ def delete_question(question_id):
             try:
                 supabase = Config.get_supabase_client()
                 supabase.storage.from_(Config.ATTACHMENT_BUCKET).remove([file_path])
-                print(f"✅ Deleted file from Supabase: {file_path}")
+                print(f"Deleted file from Supabase: {file_path}")
             except Exception as e:
-                print(f"⚠️ Failed to delete file from Supabase: {str(e)}")
+                print(f"Failed to delete file from Supabase: {str(e)}")
 
         # Delete metadata reference
         cur.execute("""
@@ -470,10 +470,10 @@ def delete_question(question_id):
             WHERE reference_id = %s AND reference_type = 'question';
         """, (question_id,))
 
-    # Delete the question (removes FK reference to attachment_id)
+    # Delete the question 
     cur.execute("DELETE FROM Questions WHERE id = %s;", (question_id,))
 
-    # Now safely delete from Attachments table
+    # Delete from Attachments table
     if attachment_id:
         cur.execute("DELETE FROM Attachments WHERE attachments_id = %s;", (attachment_id,))
         print("🧹 Deleted from Attachments table:", cur.rowcount)
@@ -503,7 +503,7 @@ def copy_question_to_course(question_id):
     cur = conn.cursor()
 
     try:
-        # Step 1: Copy base question
+        # Copy base question
         cur.execute("""
             INSERT INTO questions (
                 owner_id, type, question_text, default_points, source,
@@ -523,7 +523,7 @@ def copy_question_to_course(question_id):
         new_question_id = cur.fetchone()[0]
 
 
-        # Step 2: Copy attachments (if any)
+        # Copy attachments
         cur.execute("SELECT attachment_id FROM questions WHERE id = %s", (question_id,))
         attachment_id = cur.fetchone()[0]
 
@@ -553,7 +553,7 @@ def copy_question_to_course(question_id):
                 WHERE id = %s;
             """, (new_attachment_id, new_question_id))
 
-        # Step 3: Copy multiple choice options
+        # Copy multiple choice options
         cur.execute("SELECT option_text, is_correct FROM questionoptions WHERE question_id = %s", (question_id,))
         for opt_text, is_correct in cur.fetchall():
             cur.execute("""
@@ -561,7 +561,7 @@ def copy_question_to_course(question_id):
                 VALUES (%s, %s, %s);
             """, (new_question_id, opt_text, is_correct))
 
-        # Step 4: Copy matching pairs
+        # Copy matching pairs
         cur.execute("SELECT prompt_text, match_text FROM questionmatches WHERE question_id = %s", (question_id,))
         for prompt, match in cur.fetchall():
             cur.execute("""
@@ -569,7 +569,7 @@ def copy_question_to_course(question_id):
                 VALUES (%s, %s, %s);
             """, (new_question_id, prompt, match))
 
-        # Step 5: Copy fill-in-the-blank answers
+        # Copy fill-in-the-blank answers
         cur.execute("SELECT correct_text FROM questionfillblanks WHERE question_id = %s", (question_id,))
         for (correct_text,) in cur.fetchall():
             cur.execute("""
@@ -648,7 +648,7 @@ def copy_question_to_textbook(question_id):
     cur = conn.cursor()
 
     try:
-        # Step 1: Copy base question
+        # Copy base question
         cur.execute("""
             INSERT INTO questions (
                 owner_id, type, question_text, default_points, source,
@@ -668,7 +668,7 @@ def copy_question_to_textbook(question_id):
         new_question_id = cur.fetchone()[0]
 
 
-        # Step 2: Copy attachments (if any)
+        # Copy attachments (if any)
         cur.execute("SELECT attachment_id FROM questions WHERE id = %s", (question_id,))
         attachment_id = cur.fetchone()[0]
 
@@ -698,7 +698,7 @@ def copy_question_to_textbook(question_id):
                 WHERE id = %s;
             """, (new_attachment_id, new_question_id))
 
-        # Step 3: Copy multiple choice options
+        # Copy multiple choice options
         cur.execute("SELECT option_text, is_correct FROM questionoptions WHERE question_id = %s", (question_id,))
         for opt_text, is_correct in cur.fetchall():
             cur.execute("""
@@ -706,7 +706,7 @@ def copy_question_to_textbook(question_id):
                 VALUES (%s, %s, %s);
             """, (new_question_id, opt_text, is_correct))
 
-        # Step 4: Copy matching pairs
+        # Copy matching pairs
         cur.execute("SELECT prompt_text, match_text FROM questionmatches WHERE question_id = %s", (question_id,))
         for prompt, match in cur.fetchall():
             cur.execute("""
@@ -714,7 +714,7 @@ def copy_question_to_textbook(question_id):
                 VALUES (%s, %s, %s);
             """, (new_question_id, prompt, match))
 
-        # Step 5: Copy fill-in-the-blank answers
+        # Copy fill-in-the-blank answers
         cur.execute("SELECT correct_text FROM questionfillblanks WHERE question_id = %s", (question_id,))
         for (correct_text,) in cur.fetchall():
             cur.execute("""

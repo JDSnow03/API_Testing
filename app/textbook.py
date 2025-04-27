@@ -34,7 +34,7 @@ def create_textbook():
     textbook_id = cur.fetchone()
     if textbook_id is None:
         return jsonify({"error": "Failed to insert textbook"}), 500
-    textbook_id = textbook_id[0]  # Now it's safe to access
+    textbook_id = textbook_id[0]  
     conn.commit()
     cur.close()
     conn.close()
