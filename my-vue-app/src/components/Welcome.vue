@@ -1,31 +1,30 @@
 <!-- filepath: /c:/Users/laure/Senior-Project/TestCreationVue/src/components/Welcome.vue -->
 <template>
-
-        <div class="theme-welcome">
-            <div class="top-banner">
-                <div class="banner-title">Welcome to Print-A-Test</div>
-            </div>
-            <div class="center large-paragraph" style="color:#222"> 
-                Select the role you are logging in as:</div>
-            <div class="button-container">
-                <router-link to="/TeacherLog">
-                    <button class="button">Teacher</button>
-                </router-link>
-            </div>
-            <br>
-            <div class="button-container">
-                <router-link to="/PubLog">
-                    <button class="button">Publisher</button>
-                </router-link>
-            </div>
-            <br>
-            <div class="button-container">
-                <router-link to="/WebmasterLog">
-                    <button class="button">Webmaster</button>
-                </router-link>
-            </div>
-
+    <div class="theme-welcome">
+        <div class="top-banner">
+            <div class="banner-title">Welcome to Print-A-Test</div>
         </div>
+        <div class="center large-paragraph" style="color:#222">
+            Select the role you are logging in as:</div>
+        <div class="button-container">
+            <router-link to="/TeacherLog">
+                <button class="button">Teacher</button>
+            </router-link>
+        </div>
+        <br>
+        <div class="button-container">
+            <router-link to="/PubLog">
+                <button class="button">Publisher</button>
+            </router-link>
+        </div>
+        <br>
+        <div class="button-container">
+            <router-link to="/WebmasterLog">
+                <button class="button">Webmaster</button>
+            </router-link>
+        </div>
+
+    </div>
 </template>
 
 <script>
@@ -52,8 +51,9 @@ export default {
     justify-content: center;
     margin: 10px 0;
 }
+
 .button:hover {
-  background-color: #cf685f;
+    background-color: #cf685f;
 }
 
 .center {
@@ -76,7 +76,6 @@ export default {
     --banner-color: #d2746b;
     --text-color: #222;
     --card-bg: #ffffff;
-    /* ✅ Define this missing variable */
     background-color: #fdfdfd;
     min-height: 100vh;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -87,7 +86,6 @@ export default {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    /* ✅ allows wrap on small screens */
     gap: 20px;
     padding: 15px 30px;
     background-color: var(--banner-color);

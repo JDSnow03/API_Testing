@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import api from '@/api'; // <-- your custom Axios instance with token handling
+import api from '@/api';
 import { default as jwtDecode } from 'jwt-decode';
 
 export default {
@@ -45,7 +45,7 @@ export default {
     };
   },
   mounted() {
-    // Optional: Check if token exists and redirect if still valid
+    // Check if token exists and redirect if still valid
     const token = localStorage.getItem('token');
     if (token) {
       try {
@@ -136,6 +136,7 @@ export default {
   color: #ffffff;
   margin-top: 10px;
 }
+
 .center {
   text-align: center;
 }

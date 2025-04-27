@@ -24,6 +24,7 @@
           No published draft pools available for this course.
         </div>
 
+        <!-- Display all test banks published -->
         <div v-else>
           <div v-for="tb in fullTestbanks" :key="tb.testbank_id" class="published-bank">
             <h3>{{ tb.name }} (Chapter {{ tb.chapter_number }}, Section {{ tb.section_number }})</h3>
@@ -212,7 +213,7 @@
     </div>
 
 
-    <!-- Popups -->
+    <!-- Feedback form popup -->
     <div class="popup-overlay" v-if="showFeedbackForm">
       <div class="form-popup-modal">
         <h2>Leave Feedback</h2>
@@ -230,6 +231,7 @@
       </div>
     </div>
 
+    <!-- select testbank popup -->
     <div class="popup-overlay" v-if="showTestBankModal">
       <div class="form-popup-modal">
         <h2>Select draft pool to add question to:</h2>
@@ -285,7 +287,7 @@ export default {
     }
   },
   methods: {
-
+    //grab existing feedback from the database
     async fetchFeedback() {
       this.viewing = 'published';
       this.loadingPublished = true;
@@ -317,6 +319,8 @@ export default {
         this.loadingPublished = false;
       }
     },
+
+    // Fetch the textbook ID for the course
     async fetchCourseTextbook() {
       try {
         const res = await api.get(`/courses/${this.courseId}`, {
@@ -328,6 +332,8 @@ export default {
         console.error("Failed to fetch course textbook:", err);
       }
     },
+
+    // Fetch published tests for the course
     async viewPublishedTests() {
       this.viewing = 'published-tests';
       this.fullTestbanks = [];
@@ -354,10 +360,10 @@ export default {
           parseInt(t.textbook_id) === parseInt(this.textbookId)
         );
 
-        console.log("🧪 Filtered published tests by textbook:", publishedTests);
+        console.log("Filtered published tests by textbook:", publishedTests);
 
 
-        console.log("🧪 Filtered published tests:", publishedTests);
+        console.log("Filtered published tests:", publishedTests);
 
         // Step 4: Load questions for each test
         for (const test of publishedTests) {
@@ -385,17 +391,19 @@ export default {
             });
 
           } catch (err) {
-            console.error(`❌ Failed to fetch questions for test ID ${test.test_id}`, err);
+            console.error(`Failed to fetch questions for test ID ${test.test_id}`, err);
           }
         }
 
       } catch (err) {
-        console.error("❌ Failed to load published tests:", err);
+        console.error("Failed to load published tests:", err);
         alert("Failed to load published tests.");
       } finally {
         this.loadingPublished = false;
       }
     },
+
+    // Fetch test banks for the teacher's course
     async fetchTeacherTestbanks() {
       try {
         const res = await api.get(`/testbanks/teacher?course_id=${this.courseId}`, {
@@ -406,6 +414,8 @@ export default {
         console.error("Failed to load teacher testbanks:", err);
       }
     },
+
+    //helper function to toggle question selection and popup forms
     toggleQuestionSelection(questionId) {
       this.selectedQuestionId = this.selectedQuestionId === questionId ? null : questionId;
     },
@@ -419,6 +429,8 @@ export default {
       this.feedbackText = '';
       this.showFeedbackForm = false;
     },
+
+    // Submit feedback for a question to database
     async submitFeedback() {
       try {
         console.log("Submitting feedback:", {
@@ -440,6 +452,8 @@ export default {
         alert("Failed to submit feedback.");
       }
     },
+
+    //helper function to open and close test bank modal
     openTestBankModal(id) {
       this.selectedQuestionToAdd = id;
       this.showTestBankModal = true;
@@ -448,6 +462,8 @@ export default {
       this.selectedQuestionToAdd = null;
       this.showTestBankModal = false;
     },
+
+    // Assign question to a draft pool for techer's course
     async assignToDraftPool(testbankId) {
       const courseId = this.$route.query.course_id;
       if (!courseId || !this.selectedQuestionToAdd) {
@@ -471,11 +487,11 @@ export default {
 
         this.closeTestBankModal();
       } catch (err) {
-        console.error("❌ Failed to assign question to draft pool:", err);
+        console.error("Failed to assign question to draft pool:", err);
       }
-    }
+    },
 
-    ,
+    // Load feedback for a specific question
     async loadFeedbackForQuestion(q) {
       try {
         const res = await api.get(`/feedback/question/${q.id}`, {
@@ -498,6 +514,8 @@ export default {
         console.error(`Failed to load feedback for question ${q.id}`, err);
       }
     },
+
+    // Submit rating for a question
     async submitRating(questionId, rating) {
       try {
         await api.post('/feedback/create', {
@@ -516,7 +534,6 @@ export default {
         alert("Failed to submit rating.");
       }
     }
-
   }
 };
 </script>
@@ -530,7 +547,6 @@ export default {
   font-weight: bold;
   border: none;
   padding: 12px 20px;
-  /* ⬅️ make it taller */
   border-radius: 8px;
   font-size: 16px;
   transition: background-color 0.2s ease;

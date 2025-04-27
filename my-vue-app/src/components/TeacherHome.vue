@@ -10,11 +10,6 @@
     </div>
     <div class="center large-paragraph" style="color:#222">
       <div class="page-wrapper">
-        <!-- Download all your question data: 
-        <div class="button-row">
-          <button class="t_button">Download Questions</button>
-        </div> -->
-
 
         Please select or create a course:
 
@@ -104,7 +99,7 @@
 
 
 <script>
-import api from '@/api'; // <-- your custom Axios instance with token handling
+import api from '@/api';
 import jwtDecode from 'jwt-decode';
 export default {
   name: 'TeacherHome',
@@ -167,7 +162,7 @@ export default {
       });
     },
 
-
+    // Grab and display finalized tests
     async viewPreviousTests() {
       try {
         const response = await api.get('/tests/final', {
@@ -200,6 +195,7 @@ export default {
       }
     },
 
+    // Download test and answer key on selection
     async downloadTestAndKey(test) {
       if (!test.download_url) {
         alert('Test file not available for download.');
@@ -233,6 +229,7 @@ export default {
       }
     },
 
+    // Choose a test to publish from finalized tests
     async chooseTestToPublish() {
       try {
         const response = await api.get('/tests/final', {
@@ -263,15 +260,14 @@ export default {
           }
         });
 
-        //alert("✅ Test successfully published!");
+        //alert("Test successfully published!");
         this.showPublishSelector = false;
       } catch (err) {
-        console.error("❌ Publish failed:", (err.response && err.response.data) || err.message);
+        console.error("Publish failed:", (err.response && err.response.data) || err.message);
         alert("Failed to publish the selected test.");
       }
     }
   },
-
 
 };
 </script>

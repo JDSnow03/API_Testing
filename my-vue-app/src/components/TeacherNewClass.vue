@@ -1,15 +1,15 @@
 <!-- filepath: /c:/Users/laure/Senior-Project/TestCreationVue/src/components/TeacherNewClass.vue -->
 <template>
   <div class="theme-teacher">
-  <div class="top-banner">
-  <div class="banner-title">Create New Class</div>
+    <div class="top-banner">
+      <div class="banner-title">Create New Class</div>
 
-  <div class="t_banner-actions">
-    <router-link to="/TeacherHome" class="t_banner-btn">Home</router-link>
-    <router-link to="/" class="t_banner-btn">Log Out</router-link>
-  </div>
-</div>
-    <div class="center large-paragraph" style = "color:#222">
+      <div class="t_banner-actions">
+        <router-link to="/TeacherHome" class="t_banner-btn">Home</router-link>
+        <router-link to="/" class="t_banner-btn">Log Out</router-link>
+      </div>
+    </div>
+    <div class="center large-paragraph" style="color:#222">
       <!-- form that redirects after clicking save -->
       <form @submit.prevent="saveCourse">
         <label for="courseTitle">Course Title:</label>
@@ -124,8 +124,7 @@ select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-
-  background-color: #e9dbf7; /* Light green, feel free to change */
+  background-color: #e9dbf7;
   border: 2px solid #cda9f1;
   color: #222;
   padding: 10px 14px;
@@ -145,12 +144,10 @@ select:hover {
   border-color: #b985ec;
 }
 
-/* Optional: style the label to match */
 label {
   font-weight: bold;
   font-size: 20px;
   margin-bottom: 8px;
   display: block;
 }
-
 </style>
